@@ -1,15 +1,15 @@
 package ru.ifmo.testlib;
 
-import ru.ifmo.testlib.verifiers.*;
-import ru.ifmo.testlib.io.*;
-
-import static ru.ifmo.testlib.Outcome.Type.*;
-
 import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+
+import ru.ifmo.testlib.verifiers.*;
+import ru.ifmo.testlib.io.*;
+
+import static ru.ifmo.testlib.Outcome.Type.*;
 
 /**
  * This is the checker framework, which is the entry point for all checkers.
@@ -44,7 +44,7 @@ public class CheckerFramework {
         registerResultAdapter("checker-type:ejudge", new EJudgeResultAdapter());
     }
 
-    private static void misusage() {
+    private static void printUsageAndExit() {
         System.err.println(USAGE);
         System.exit(3);
     }
@@ -54,7 +54,7 @@ public class CheckerFramework {
         System.exit(3);
     }
 
-    private static String findVerifier() {
+    private static String findCheckerInManifest() {
         try {
             Enumeration<URL> resources = CheckerFramework.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
             while (resources.hasMoreElements()) {
@@ -74,30 +74,30 @@ public class CheckerFramework {
     public static void main(String[] args) {
         int delta = 0;
         if (args.length < 3 + delta) {
-            misusage();
+            printUsageAndExit();
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
-        // TODO fix verifier -> result adapter
-        String verifierClassName = findVerifier();
-        if (verifierClassName == null) {
-            verifierClassName = args[0];
-            delta = 1;
+        String checkerClassName = findCheckerInManifest();
+        if (checkerClassName == null) {
+            checkerClassName = args[0];
         }
-        
-        if (args[0].equals(verifierClassName)) {
-            // Compatibility fix
+
+        // This includes two cases:
+        //   the case when the checker class name is given in the command line only.
+        //   the case when the checker class name is defined in manifest AND given in the command line.
+        if (args[0].equals(checkerClassName)) {
             delta = 1;
         }
 
         if (args.length < 3 + delta) {
-            misusage();
+            printUsageAndExit();
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
         Checker checker;
         try {
-            checker = (Checker) (Class.forName(verifierClassName).newInstance());
+            checker = (Checker) (Class.forName(checkerClassName).newInstance());
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             e.printStackTrace();
             fatal(e.getMessage());
