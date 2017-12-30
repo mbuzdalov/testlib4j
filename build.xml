@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="testlib4j" default="compile-src" basedir=".">
+    <property name="build.dir" location="build"/>
+    <property name="deploy.dir" location="deploy"/>
+
+    <property name="src.source.dir"   location="src"/>
+    <property name="src.build.dir"    location="${build.dir}/src"/>
+    <property name="tests.source.dir" location="tests"/>
+    <property name="tests.build.dir"  location="${build.dir}/tests"/> 
+    
+    <target name="init">
+        <tstamp>
+            <format property="DSTAMP" pattern="yyyy-MM-dd" locale="US"/>
+        </tstamp>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${deploy.dir}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${deploy.dir}"/>
+    </target>
+    
+    <target name="compile-src" depends="init">
+        <mkdir dir="${src.build.dir}"/>
+        <javac
+            srcdir="${src.source.dir}"
+            destdir="${src.build.dir}"
+            encoding="utf-8"
+            includeantruntime="false"
+        >
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+        <jar destfile="${deploy.dir}/testlib4j.jar" basedir="${src.build.dir}"/>
+    </target>
+</project>
