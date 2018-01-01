@@ -20,7 +20,7 @@ import static ru.ifmo.testlib.Outcome.Type.*;
  * @author Sergey Melnikov
  */
 public class CheckerFramework {
-    private static final String SYS_EXIT_DISABLED = "System.exit(int) is disabled. Exiting abnormally.";
+    private static final String SYS_EXIT_DISABLED = "System.exit(int) did not exit. Exiting abnormally.";
     private static final String USAGE =
             "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]]\n" +
             "    (<verifier_classname> may also be specified in MANIFEST.MF as Checker-Class attribute)";
@@ -104,10 +104,6 @@ public class CheckerFramework {
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
-        InputInStream input = new InputInStream(new File(args[delta]));
-        OutputInStream output = new OutputInStream(new File(args[1 + delta]));
-        AnswerInStream answer = new AnswerInStream(new File(args[2 + delta]));
-
         PrintWriter result;
 
         String[] verifierArgs;
@@ -140,28 +136,28 @@ public class CheckerFramework {
         if (resultAdapter == null) {
             System.err.println("No result adapter found (property checker-type = \"" + verifierType + "\")");
             System.exit(1);
+            throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
         resultAdapter.initArgs(verifierArgs);
 
         Outcome outcome;
-        try {
+        try (InputInStream input = new InputInStream(new File(args[delta]));
+             OutputInStream output = new OutputInStream(new File(args[1 + delta]));
+             AnswerInStream answer = new AnswerInStream(new File(args[2 + delta]))) {
             outcome = checker.test(input, output, answer);
+            if (outcome.getType() == OK && PE_IF_OK_AND_NOT_EOF && !output.seekEoF()) {
+                outcome = new Outcome(PE, "Extra information in output file");
+            }
         } catch (Outcome out) {
             outcome = out;
         } catch (Throwable th) {
             th.printStackTrace();
             outcome = new Outcome(FAIL, th.toString());
         }
-        if (outcome.getType() == OK && PE_IF_OK_AND_NOT_EOF && !output.seekEoF()) {
-            outcome = new Outcome(PE, "Extra information in output file");
-        }
-        resultAdapter.printMessage(outcome, result, args.length <= 4);
 
+        resultAdapter.printMessage(outcome, result, args.length <= 4);
         result.close();
-        input.close();
-        output.close();
-        answer.close();
 
         System.exit(resultAdapter.getExitCodeFor(outcome));
     }
