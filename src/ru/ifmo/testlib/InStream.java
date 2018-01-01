@@ -1,5 +1,6 @@
 package ru.ifmo.testlib;
 
+import java.io.Closeable;
 import java.math.BigInteger;
 
 /**
@@ -10,7 +11,7 @@ import java.math.BigInteger;
  * @author Dmitry Paraschenko
  * @author Sergey Melnikov
  */
-public interface InStream {
+public interface InStream extends Closeable {
     /**
      * A special value denoting end of file.
      */
@@ -111,37 +112,37 @@ public interface InStream {
     String nextToken();
 
     /**
-     * Returns next {@link Integer} number. Whitespace characters are used as delimiters.
+     * Returns next {@code int}. Whitespace characters are used as delimiters.
      *
-     * @return next {@link Integer} number.
+     * @return next {@code int}.
      */
     int nextInt();
 
     /**
-     * Returns next {@link Long} number. Whitespace characters are used as delimiters.
+     * Returns next {@code long}. Whitespace characters are used as delimiters.
      *
-     * @return next {@link Long} number.
+     * @return next {@code long}.
      */
     long nextLong();
 
     /**
-     * Returns next {@link BigInteger} number. Whitespace characters are used as delimiters.
+     * Returns next {@link BigInteger}. Whitespace characters are used as delimiters.
      *
-     * @return next {@link BigInteger} number.
+     * @return next {@link BigInteger}.
      */
     BigInteger nextBigInteger();
 
     /**
-     * Returns next {@link Float} number. Whitespace characters are used as delimiters.
+     * Returns next {@code float}. Whitespace characters are used as delimiters.
      *
-     * @return next {@link Float} number.
+     * @return next {@code float}.
      */
     float nextFloat();
 
     /**
-     * Returns next {@link Double} number. Whitespace characters are used as delimiters.
+     * Returns next {@code double}. Whitespace characters are used as delimiters.
      *
-     * @return next {@link Double} number.
+     * @return next {@code double}.
      */
     double nextDouble();
 
