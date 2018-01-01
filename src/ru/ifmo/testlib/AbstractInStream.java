@@ -38,6 +38,7 @@ public abstract class AbstractInStream implements InStream {
 			}
 			reader = new BufferedReader(new FileReader(file));
 		} catch (IOException ex) {
+		    // The output file might not exist, because the participant is "evil".
 			throw getExceptionForInputMismatch("File not found", ex);
 		}
 		scanChar();
@@ -47,7 +48,8 @@ public abstract class AbstractInStream implements InStream {
 		try {
 			reader.close();
 		} catch (IOException ex) {
-			throw getExceptionForInputMismatch("Cannot close file", ex);
+			// Even if the participant is totally "evil", this must not happen
+			throw new Outcome(Outcome.Type.FAIL, "Cannot close file", ex);
 		}
 	}
 
