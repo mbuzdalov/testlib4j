@@ -51,7 +51,22 @@
             <include name="CompareNumber.java"/>
             <classpath refid="src.deps"/>
         </javac>
-        <jar destfile="${examples.dir}/CompareNumber.jar" basedir="${examples.tmp.dir}"/>
+        <jar destfile="${examples.dir}/CompareNumber.jar" basedir="${examples.tmp.dir}">
+            <manifest>
+                <attribute name="Checker-Class" value="CompareNumber"/>
+            </manifest>
+        </jar>
+
+        <!-- YesNo.java -->
+        <javac srcdir="${examples.dir}" destdir="${examples.tmp.dir}" includeantruntime="false">
+            <include name="YesNo.java"/>
+            <classpath refid="src.deps"/>
+        </javac>
+        <jar destfile="${examples.dir}/YesNo.jar" basedir="${examples.tmp.dir}">
+            <manifest>
+                <attribute name="Checker-Class" value="YesNo"/>
+            </manifest>
+        </jar>
 
         <delete dir="${examples.tmp.dir}"/>
     </target>
