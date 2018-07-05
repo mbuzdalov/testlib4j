@@ -4,9 +4,6 @@
 # Log file
 *.log
 
-# BlueJ files
-*.ctxt
-
 # Package Files #
 *.jar
 *.war
@@ -22,3 +19,5 @@ hs_err_pid*
 .idea/
 *.iml
 /out/
+/build/
+/deploy/
