@@ -187,8 +187,9 @@ public class FileInStream implements InStream {
 
 	public int nextChar() {
 		try {
+		    int result = currChar;
 			currChar = reader.read();
-            return currChar;
+            return result;
 		} catch (IOException ex) {
 			throw quit(Outcome.Type.PE, ex.getMessage());
 		}
