@@ -29,9 +29,6 @@ public class CheckerFramework {
 
     private final static String CHECKER_CLASS_ENTRY = "Checker-Class";
 
-    @Deprecated
-    public static boolean PE_IF_OK_AND_NOT_EOF = true;
-
     private static HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
 
     private static void registerResultAdapter(String id, ResultAdapter v) {
@@ -146,7 +143,7 @@ public class CheckerFramework {
              OutputInStream output = new OutputInStream(new File(args[1 + delta]));
              AnswerInStream answer = new AnswerInStream(new File(args[2 + delta]))) {
             outcome = checker.test(input, output, answer);
-            if (outcome.getType() == OK && PE_IF_OK_AND_NOT_EOF && !output.seekEoF()) {
+            if (outcome.getType() == OK && !output.seekEoF()) {
                 outcome = new Outcome(PE, "Extra information in output file");
             }
         } catch (Outcome out) {
