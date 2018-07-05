@@ -2,6 +2,7 @@
 <project name="testlib4j" default="compile-src" basedir=".">
     <property name="build.dir" location="build"/>
     <property name="deploy.dir" location="deploy"/>
+    <property name="example.files.dir" location="example-files"/>
 
     <property name="src.source.dir"   location="src"/>
     <property name="src.build.dir"    location="${build.dir}/src"/>
@@ -57,8 +58,89 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="test-example-checker">
+        <attribute name="description"/>
+        <attribute name="checker"/>
+        <attribute name="input"/>
+        <attribute name="output"/>
+        <attribute name="answer"/>
+        <attribute name="expected-exit-code"/>
+        <sequential>
+            <echo level="info" message="Running checker @{checker} on test: @{description}"/>
+            <local name="actual-exit-code"/>
+            <local name="stored-output"/>
+            <local name="stored-error"/>
+            <java fork="true" classname="ru.ifmo.testlib.CheckerFramework"
+                  resultproperty="actual-exit-code" outputproperty="stored-output" errorproperty="stored-error">
+                <classpath>
+                    <pathelement location="${deploy.dir}/testlib4j.jar"/>
+                    <pathelement location="${examples.deploy.dir}/@{checker}.jar"/>
+                </classpath>
+                <arg value="${example.files.dir}/@{input}"/>
+                <arg value="${example.files.dir}/@{output}"/>
+                <arg value="${example.files.dir}/@{answer}"/>
+            </java>
+            <!--suppress AntResolveInspection IDEA does not know why actual-exit-code exists here -->
+            <fail>
+                <condition>
+                    <not>
+                        <!--suppress AntResolveInspection IDEA does not know why actual-exit-code exists here -->
+                        <equals arg1="@{expected-exit-code}" arg2="${actual-exit-code}"/>
+                    </not>
+                </condition>
+Exit code does not match: expected @{expected-exit-code} found ${actual-exit-code}
+Standard Output:
+${stored-output}
+Standard Error:
+${stored-error}
+            </fail>
+        </sequential>
+    </macrodef>
+
     <target name="compile-examples" depends="compile-src">
         <compile-example-checker checker="CompareNumber"/>
         <compile-example-checker checker="YesNo"/>
     </target>
+
+    <target name="test-example-compare-number" depends="compile-examples">
+        <test-example-checker description="Two equal files with single numbers"
+                              checker="CompareNumber" expected-exit-code="0"
+                              input="just-text.txt" output="number-42.txt" answer="number-42.txt"/>
+        <test-example-checker description="Two different files with single numbers"
+                              checker="CompareNumber" expected-exit-code="1"
+                              input="just-text.txt" output="number-32.txt" answer="number-42.txt"/>
+        <test-example-checker description="Only contestant's output is not-a-number"
+                              checker="CompareNumber" expected-exit-code="2"
+                              input="just-text.txt" output="yes.txt" answer="number-32.txt"/>
+        <test-example-checker description="Both files are not-a-numbers and equal"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="no.txt" answer="no.txt"/>
+        <test-example-checker description="Both files are not-a-numbers and different"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="no.txt"/>
+        <test-example-checker description="Only jury's output is not-a-number"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="number-32.txt" answer="no.txt"/>
+        <test-example-checker description="Contestant's file does not exist"
+                              checker="CompareNumber" expected-exit-code="2"
+                              input="just-text.txt" output="does-not-exist" answer="number-32.txt"/>
+        <test-example-checker description="Jury's file does not exist"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="number-32.txt" answer="does-not-exist"/>
+        <test-example-checker description="Jury's file does not exist and contestant's file is not-a-number"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
+        <test-example-checker description="Contestant's file matches but has an extra output"
+                              checker="CompareNumber" expected-exit-code="2"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
+        <test-example-checker description="Contestant's file does not match and has an extra output"
+                              checker="CompareNumber" expected-exit-code="1"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="number-32.txt"/>
+        <!-- TODO I am not sure whether we want this -->
+        <test-example-checker description="Jury's file has an extra output"
+                              checker="CompareNumber" expected-exit-code="0"
+                              input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
+    </target>
+
+    <target name="test-examples" depends="test-example-compare-number"/>
 </project>
