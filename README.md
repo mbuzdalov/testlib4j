@@ -82,11 +82,9 @@ public class CompareNumber implements Checker {
         long answer = ans.nextLong();
         long output = ouf.nextLong();
         if (answer != output) {
-            return new Outcome(WA,
-                "The answer is " + answer + ", but you output " + output);
+            return new Outcome(WA, "The answer is " + answer + ", but you output " + output);
         } else {
-            return new Outcome(OK,
-                "OK: " + answer);
+            return new Outcome(OK, "OK: " + answer);
         }
     }
 }
