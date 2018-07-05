@@ -16,12 +16,14 @@ import java.io.*;
 public interface ResultAdapter {
     /**
      * Applies the optional command-line arguments to the result adapter.
+     *
      * @param args the extra arguments to the result adapter.
      */
     void initArgs(String[] args);
 
     /**
      * Returns the exit code for the specified quit type. It may differ from platform to platform.
+     *
      * @param outcome the quit type.
      * @return the exit code.
      */
@@ -30,6 +32,7 @@ public interface ResultAdapter {
     /**
      * Prints an outcome message to the specified writer.
      * The behaviour may differ depending on whether console is used, so this is provided as a parameter.
+     *
      * @param outcome the outcome.
      * @param result the writer to print to.
      * @param console <tt>true</tt> if the writer prints on console, <tt>false</tt> if to file.
