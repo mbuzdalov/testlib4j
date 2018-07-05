@@ -1,19 +1,23 @@
 package ru.ifmo.testlib;
 
-import java.io.*;
-import java.math.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Map;
 
 /**
- * Abstract implementation of {@link InStream} interface.
+ * A file-based implementation of the {@link InStream} interface.
  *
  * @author Maxim Buzdalov
  * @author Andrew Stankevich
  * @author Dmitry Paraschenko
  * @author Sergey Melnikov
  */
-public abstract class AbstractInStream implements InStream {
+public class FileInStream implements InStream {
 	/** A file to read data from. */
-	private File file;
+	private final File file;
 
 	/** Current character. */
 	private int currChar;
@@ -21,13 +25,17 @@ public abstract class AbstractInStream implements InStream {
 	/** A reader used to read data. */
 	private BufferedReader reader;
 
+	/** The outcome mapping to be used for this stream. */
+	private final Map<Outcome.Type, Outcome.Type> outcomeMapping;
+
 	/**
-	 * Creates new {@link InStream} for specified file.
+	 * Creates new {@link InStream} for specified file and with the specified outcome mapping.
 	 *
 	 * @param file a file to read data from
 	 */
-	public AbstractInStream(File file) {
+	FileInStream(File file, Map<Outcome.Type, Outcome.Type> outcomeMapping) {
 		this.file = file;
+		this.outcomeMapping = outcomeMapping;
 		reset();
 	}
 
@@ -39,9 +47,9 @@ public abstract class AbstractInStream implements InStream {
 			reader = new BufferedReader(new FileReader(file));
 		} catch (IOException ex) {
 		    // The output file might not exist, because the participant is "evil".
-			throw getExceptionForInputMismatch("File not found", ex);
+			throw quit(Outcome.Type.PE, "File not found: " + ex.toString());
 		}
-		scanChar();
+		nextChar();
 	}
 
 	public void close() {
@@ -49,7 +57,7 @@ public abstract class AbstractInStream implements InStream {
 			reader.close();
 		} catch (IOException ex) {
 			// Even if the participant is totally "evil", this must not happen
-			throw new Outcome(Outcome.Type.FAIL, "Cannot close file", ex);
+			throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex.toString());
 		}
 	}
 
@@ -57,12 +65,7 @@ public abstract class AbstractInStream implements InStream {
 		return currChar;
 	}
 
-	public int nextChar() {
-		scanChar();
-		return currChar;
-	}
-
-	public boolean isEoF() {
+    public boolean isEoF() {
 		return currChar == EOF_CHAR;
 	}
 
@@ -72,44 +75,44 @@ public abstract class AbstractInStream implements InStream {
 
 	public boolean seekEoF() {
 		while (!isEoF() && Character.isWhitespace(currChar)) {
-			nextChar();
-		}
+            nextChar();
+        }
 		return isEoF();
 	}
 
 	public boolean seekEoLn() {
 		while (!isEoLn() && Character.isWhitespace(currChar)) {
-			nextChar();
-		}
+            nextChar();
+        }
 		return isEoLn();
 	}
 
 	public void skipLine() {
 		while (!isEoLn()) {
-			nextChar();
-		}
+            nextChar();
+        }
 		if (currChar == '\r') nextChar();
 		if (currChar == '\n') nextChar();
 	}
 
 	public void skip(String skip) {
 		while (!isEoF() && skip.indexOf((char) currChar) >= 0) {
-			nextChar();
-		}
+            nextChar();
+        }
 	}
 
 	public String nextToken(String before, String after) {
 		while (!isEoF() && before.indexOf((char) currChar) >= 0) {
-			nextChar();
-		}
+            nextChar();
+        }
 		if (isEoF()) {
-			throw getExceptionForInputMismatch("Unexpected end of file");
+			throw quit(Outcome.Type.PE, "Unexpected end of file");
 		}
 		StringBuilder builder = new StringBuilder();
 		while (!isEoF() && after.indexOf((char) currChar) < 0) {
 			builder.append((char) currChar);
-			nextChar();
-		}
+            nextChar();
+        }
 		return builder.toString();
 	}
 
@@ -126,7 +129,7 @@ public abstract class AbstractInStream implements InStream {
 		try {
 			return Integer.parseInt(word);
 		} catch (NumberFormatException ex) {
-			throw getExceptionForInputMismatch(String.format("A 32-bit signed integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, String.format("A 32-bit signed integer expected, %s found", word), ex);
 		}
 	}
 
@@ -135,7 +138,7 @@ public abstract class AbstractInStream implements InStream {
 		try {
 			return Long.parseLong(word);
 		} catch (NumberFormatException ex) {
-			throw getExceptionForInputMismatch(String.format("A 64-bit signed integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, String.format("A 64-bit signed integer expected, %s found", word), ex);
 		}
 	}
 
@@ -144,7 +147,7 @@ public abstract class AbstractInStream implements InStream {
 		try {
 			return new BigInteger(word);
 		} catch (NumberFormatException ex) {
-			throw getExceptionForInputMismatch(String.format("An integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, String.format("An integer expected, %s found", word), ex);
 		}
 	}
 
@@ -153,7 +156,7 @@ public abstract class AbstractInStream implements InStream {
 		try {
 			return Float.parseFloat(word);
 		} catch (NumberFormatException ex) {
-			throw getExceptionForInputMismatch(String.format("A float number expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, String.format("A float number expected, %s found", word), ex);
 		}
 	}
 
@@ -166,7 +169,7 @@ public abstract class AbstractInStream implements InStream {
 			}
 			return v;
 		} catch (NumberFormatException ex) {
-			throw getExceptionForInputMismatch(String.format("A double number expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, String.format("A double number expected, %s found", word), ex);
 		}
 	}
 
@@ -174,63 +177,33 @@ public abstract class AbstractInStream implements InStream {
 		StringBuilder sb = new StringBuilder();
 		while (!isEoLn()) {
 			sb.append((char) (currChar));
-			nextChar();
-		}
+            nextChar();
+        }
 		if (currChar == '\r') nextChar();
 		if (currChar == '\n') nextChar();
 
 		return sb.toString();
 	}
 
-	/**
-	 * Returns the next character from the stream. Used by {@see nextChar()} and similar methods.
-	 *
-	 * @return next character or {@see EOF_CHAR} if the end of file was reached
-	 */
-	private int scanChar() {
+	public int nextChar() {
 		try {
 			currChar = reader.read();
-			if (currChar == -1) {
-				currChar = EOF_CHAR;
-			}
-			return currChar;
+            return currChar;
 		} catch (IOException ex) {
-			throw getExceptionForInputMismatch(ex);
+			throw quit(Outcome.Type.PE, ex.getMessage());
 		}
 	}
 
-	/**
-	 * Returns a correct exception when input mismatch occurs. Different types
-	 * of input streams generate different exceptions on crash.
-	 *
-	 * @param message exception message (may be null).
-	 * @param cause exception cause (may be null).
-	 *
-	 * @return the exception.
-	 */
-	protected abstract Outcome getExceptionForInputMismatch(String message, Exception cause);
-
-	/**
-	 * Returns a correct exception when input mismatch occurs. Different types
-	 * of input streams generate different exceptions on crash.
-	 *
-	 * @param message exception message (may be null).
-	 *
-	 * @return the exception.
-	 */
-	private Outcome getExceptionForInputMismatch(String message) {
-		return getExceptionForInputMismatch(message, null);
-	}
-
-	/**
-	 * Returns a correct exception when input mismatch occurs. Different types
-	 * of input streams generate different exceptions on crash.
-	 *
-	 * @param cause exception cause (may be null).
-	 *
-	 * @return the exception.
-	 */
-	private Outcome getExceptionForInputMismatch(Exception cause) {
-		return getExceptionForInputMismatch(null, cause);
-	}
+    /**
+     * Throws a new outcome with the given type and message,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param type the type of the outcome.
+     * @param message the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+	public Outcome quit(Outcome.Type type, String message) {
+        return new Outcome(outcomeMapping.getOrDefault(type, type), message);
+    }
 }

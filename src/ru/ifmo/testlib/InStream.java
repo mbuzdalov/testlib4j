@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.math.BigInteger;
 
 /**
- * InStream
+ * An interface for reading input files.
  *
  * @author Maxim Buzdalov
  * @author Andrew Stankevich
@@ -90,7 +90,6 @@ public interface InStream extends Closeable {
      *
      * @param before the {@link String} containing characters to be used as delimiters before the token.
      * @param after the {@link String} containing characters to be used as delimiters after the token.
-     *
      * @return next {@link String} token;
      */
     String nextToken(String before, String after);
@@ -99,7 +98,6 @@ public interface InStream extends Closeable {
      * Returns next {@link String} token with specified delimiters.
      *
      * @param skip the {@link String} containing characters to be used as delimiters before and after the token.
-     *
      * @return next {@link String} token;
      */
     String nextToken(String skip);
@@ -152,4 +150,29 @@ public interface InStream extends Closeable {
      * @return unread part of current line.
      */
     String nextLine();
+
+    /**
+     * Throws a new outcome with the given type and message,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param type the type of the outcome.
+     * @param message the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    Outcome quit(Outcome.Type type, String message);
+
+    /**
+     * Throws a new outcome with the given type and message composed from the given format string and arguments,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param type the type of the outcome.
+     * @param formatString the format string for the message to be specified in the outcome.
+     * @param arguments the arguments for the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    default Outcome quit(Outcome.Type type, String formatString, Object... arguments) {
+        return quit(type, String.format(formatString, arguments));
+    }
 }

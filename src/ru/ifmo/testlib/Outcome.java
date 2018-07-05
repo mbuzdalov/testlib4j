@@ -1,5 +1,9 @@
 package ru.ifmo.testlib;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Describes an outcome. The instances of the class are immutable.
  *
@@ -9,8 +13,17 @@ package ru.ifmo.testlib;
  * @author Sergey Melnikov
  */
 public class Outcome extends RuntimeException {
-	public static Outcome quit(Type type, String format, Object... obj) {
-		throw new Outcome(type, String.format(format, obj));
+    /**
+     * Throws a new outcome with the given type and message composed from the given format string and arguments.
+     *
+     * @param type the type of the outcome.
+     * @param formatString the format string for the message to be specified in the outcome.
+     * @param arguments the arguments for the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+	public static Outcome quit(Type type, String formatString, Object... arguments) {
+		throw new Outcome(type, String.format(formatString, arguments));
 	}
 
 	/**
@@ -19,6 +32,18 @@ public class Outcome extends RuntimeException {
 	public enum Type {
 		OK, WA, PE, FAIL
 	}
+
+    /**
+     * An outcome remapping used for input and answer {@link InStream}s.
+     */
+	static final Map<Type, Type> nonOkayIsFail;
+
+	static {
+        EnumMap<Type, Type> result = new EnumMap<>(Type.class);
+        result.put(Type.WA, Type.FAIL);
+        result.put(Type.PE, Type.FAIL);
+        nonOkayIsFail = Collections.unmodifiableMap(result);
+    }
 
 	/**
 	 * A type of the outcome.
@@ -40,13 +65,7 @@ public class Outcome extends RuntimeException {
 		this.comment = comment;
 	}
 
-	public Outcome(Type type, String comment, Exception ex) {
-		super(ex);
-		this.type = type;
-		this.comment = comment;
-	}
-
-	/**
+    /**
 	 * Returns the type of the outcome.
 	 *
 	 * @return the type.

@@ -1,15 +1,20 @@
 package ru.ifmo.testlib;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import ru.ifmo.testlib.verifiers.*;
-import ru.ifmo.testlib.io.*;
-
 import static ru.ifmo.testlib.Outcome.Type.*;
+import ru.ifmo.testlib.verifiers.EJudgeResultAdapter;
+import ru.ifmo.testlib.verifiers.IFMOResultAdapter;
+import ru.ifmo.testlib.verifiers.KittenResultAdapter;
 
 /**
  * This is the checker framework, which is the entry point for all checkers.
@@ -22,8 +27,8 @@ import static ru.ifmo.testlib.Outcome.Type.*;
 public class CheckerFramework {
     private static final String SYS_EXIT_DISABLED = "System.exit(int) did not exit. Exiting abnormally.";
     private static final String USAGE =
-            "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]]\n" +
-            "    (<verifier_classname> may also be specified in MANIFEST.MF as Checker-Class attribute)";
+            "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]].\n" +
+            "    The <verifier_classname> value may also be specified in MANIFEST.MF as Checker-Class attribute.";
 
     private static final String DEFAULT_RESULT_ADAPTER = "checker-type:ifmo";
 
@@ -139,9 +144,9 @@ public class CheckerFramework {
         resultAdapter.initArgs(verifierArgs);
 
         Outcome outcome;
-        try (InputInStream input = new InputInStream(new File(args[delta]));
-             OutputInStream output = new OutputInStream(new File(args[1 + delta]));
-             AnswerInStream answer = new AnswerInStream(new File(args[2 + delta]))) {
+        try (InStream input = new FileInStream(new File(args[delta]), Outcome.nonOkayIsFail);
+             InStream output = new FileInStream(new File(args[1 + delta]), Collections.emptyMap());
+             InStream answer = new FileInStream(new File(args[2 + delta]), Outcome.nonOkayIsFail)) {
             outcome = checker.test(input, output, answer);
             if (outcome.getType() == OK && !output.seekEoF()) {
                 outcome = new Outcome(PE, "Extra information in output file");
