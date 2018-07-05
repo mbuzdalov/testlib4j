@@ -23,7 +23,7 @@ public abstract class AbstractInStream implements InStream {
 
 	/**
 	 * Creates new {@link InStream} for specified file.
-	 * 
+	 *
 	 * @param file a file to read data from
 	 */
 	public AbstractInStream(File file) {
@@ -184,7 +184,7 @@ public abstract class AbstractInStream implements InStream {
 
 	/**
 	 * Returns the next character from the stream. Used by {@see nextChar()} and similar methods.
-	 * 
+	 *
 	 * @return next character or {@see EOF_CHAR} if the end of file was reached
 	 */
 	private int scanChar() {
@@ -202,10 +202,10 @@ public abstract class AbstractInStream implements InStream {
 	/**
 	 * Returns a correct exception when input mismatch occurs. Different types
 	 * of input streams generate different exceptions on crash.
-	 * 
+	 *
 	 * @param message exception message (may be null).
 	 * @param cause exception cause (may be null).
-	 * 
+	 *
 	 * @return the exception.
 	 */
 	protected abstract Outcome getExceptionForInputMismatch(String message, Exception cause);
@@ -213,9 +213,9 @@ public abstract class AbstractInStream implements InStream {
 	/**
 	 * Returns a correct exception when input mismatch occurs. Different types
 	 * of input streams generate different exceptions on crash.
-	 * 
+	 *
 	 * @param message exception message (may be null).
-	 * 
+	 *
 	 * @return the exception.
 	 */
 	private Outcome getExceptionForInputMismatch(String message) {
@@ -225,9 +225,9 @@ public abstract class AbstractInStream implements InStream {
 	/**
 	 * Returns a correct exception when input mismatch occurs. Different types
 	 * of input streams generate different exceptions on crash.
-	 * 
+	 *
 	 * @param cause exception cause (may be null).
-	 * 
+	 *
 	 * @return the exception.
 	 */
 	private Outcome getExceptionForInputMismatch(Exception cause) {

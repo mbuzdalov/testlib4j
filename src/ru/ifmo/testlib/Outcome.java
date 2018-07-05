@@ -12,12 +12,12 @@ public class Outcome extends RuntimeException {
 	public static void quit(Type type, String format, Object... obj) {
 		throw new Outcome(type, String.format(format, obj));
 	}
-	
+
 	@Deprecated
 	public static void fail(String format, Object... obj) {
 		throw new Outcome(Type.FAIL, String.format(format, obj));
 	}
-	
+
 	@Deprecated
 	public static void ok(String format, Object... obj) {
 		throw new Outcome(Type.OK, String.format(format, obj));
@@ -27,7 +27,7 @@ public class Outcome extends RuntimeException {
 	public static void ok() {
 		ok("");
 	}
-	
+
 	@Deprecated
 	public static void wa(String format, Object... obj) {
 		throw new Outcome(Type.WA, String.format(format, obj));
@@ -56,7 +56,7 @@ public class Outcome extends RuntimeException {
 
 	/**
 	 * Creates a new outcome.
-	 * 
+	 *
 	 * @param type the type of the outcome.
 	 * @param comment the comment to the outcome.
 	 */
@@ -73,7 +73,7 @@ public class Outcome extends RuntimeException {
 
 	/**
 	 * Returns the type of the outcome.
-	 * 
+	 *
 	 * @return the type.
 	 */
 	public Type getType() {
@@ -82,7 +82,7 @@ public class Outcome extends RuntimeException {
 
 	/**
 	 * Returns the comment to the outcome.
-	 * 
+	 *
 	 * @return the comment.
 	 */
 	public String getComment() {

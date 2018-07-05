@@ -90,7 +90,7 @@ public interface InStream extends Closeable {
      *
      * @param before the {@link String} containing characters to be used as delimiters before the token.
      * @param after the {@link String} containing characters to be used as delimiters after the token.
-     *  
+     *
      * @return next {@link String} token;
      */
     String nextToken(String before, String after);
@@ -106,7 +106,7 @@ public interface InStream extends Closeable {
 
     /**
      * Returns next {@link String} token. Whitespace characters are used as delimiters.
-     * 
+     *
      * @return next {@link String} token.
      */
     String nextToken();
