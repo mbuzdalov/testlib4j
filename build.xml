@@ -88,7 +88,7 @@
                         <equals arg1="@{expected-exit-code}" arg2="${actual-exit-code}"/>
                     </not>
                 </condition>
-Exit code does not match: expected @{expected-exit-code} found ${actual-exit-code}
+Exit codes do not match: expected @{expected-exit-code} found ${actual-exit-code}
 Standard Output:
 ${stored-output}
 Standard Error:
