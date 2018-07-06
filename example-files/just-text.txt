@@ -1,1 +1,1 @@
-This is an arbitrary text, which serves as a dummy input file.
+YES This is an arbitrary text, which serves as a dummy input file.

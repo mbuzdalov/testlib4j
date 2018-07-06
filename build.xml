@@ -127,9 +127,18 @@ ${stored-error}
         <test-example-checker description="Jury's file does not exist"
                               checker="CompareNumber" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="does-not-exist"/>
+        <test-example-checker description="Contestant's file is empty"
+                              checker="CompareNumber" expected-exit-code="2"
+                              input="just-text.txt" output="empty.txt" answer="number-32.txt"/>
+        <test-example-checker description="Jury's file is empty"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="number-32.txt" answer="empty.txt"/>
         <test-example-checker description="Jury's file does not exist and contestant's file is not-a-number"
                               checker="CompareNumber" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
+        <test-example-checker description="Jury's file is empty and contestant's file is not-a-number"
+                              checker="CompareNumber" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="empty.txt"/>
         <test-example-checker description="Contestant's file matches but has an extra output"
                               checker="CompareNumber" expected-exit-code="2"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
@@ -142,5 +151,48 @@ ${stored-error}
                               input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
     </target>
 
-    <target name="test-examples" depends="test-example-compare-number"/>
+    <target name="test-example-yesno" depends="compile-examples">
+        <test-example-checker description="Two equal files with YES"
+                              checker="YesNo" expected-exit-code="0"
+                              input="just-text.txt" output="yes.txt" answer="yes.txt"/>
+        <test-example-checker description="Two equal files with NO"
+                              checker="YesNo" expected-exit-code="0"
+                              input="just-text.txt" output="no.txt" answer="no.txt"/>
+        <test-example-checker description="Expected YES, found NO"
+                              checker="YesNo" expected-exit-code="1"
+                              input="just-text.txt" output="no.txt" answer="yes.txt"/>
+        <test-example-checker description="Expected NO, found YES"
+                              checker="YesNo" expected-exit-code="1"
+                              input="just-text.txt" output="yes.txt" answer="no.txt"/>
+        <test-example-checker description="Contestant's file is neither YES nor NO"
+                              checker="YesNo" expected-exit-code="2"
+                              input="just-text.txt" output="number-42.txt" answer="no.txt"/>
+        <test-example-checker description="Jury's file is neither YES nor NO"
+                              checker="YesNo" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="number-42.txt"/>
+        <test-example-checker description="Contestant's file does not exist"
+                              checker="YesNo" expected-exit-code="2"
+                              input="just-text.txt" output="does-not-exist" answer="no.txt"/>
+        <test-example-checker description="Jury's file does not exist"
+                              checker="YesNo" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
+        <test-example-checker description="Contestant's file is empty"
+                              checker="YesNo" expected-exit-code="2"
+                              input="just-text.txt" output="empty.txt" answer="no.txt"/>
+        <test-example-checker description="Jury's file is empty"
+                              checker="YesNo" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="empty.txt"/>
+        <test-example-checker description="Contestant's file matches but has an extra output"
+                              checker="YesNo" expected-exit-code="2"
+                              input="just-text.txt" output="just-text.txt" answer="yes.txt"/>
+        <test-example-checker description="Contestant's file does not match and has an extra output"
+                              checker="YesNo" expected-exit-code="1"
+                              input="just-text.txt" output="just-text.txt" answer="no.txt"/>
+        <!-- TODO I am not sure whether we want this -->
+        <test-example-checker description="Jury's file has an extra output"
+                              checker="YesNo" expected-exit-code="0"
+                              input="just-text.txt" output="yes.txt" answer="just-text.txt"/>
+    </target>
+
+    <target name="test-examples" depends="test-example-compare-number, test-example-yesno"/>
 </project>
