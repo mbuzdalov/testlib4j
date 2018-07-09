@@ -25,14 +25,13 @@ import ru.ifmo.testlib.verifiers.KittenResultAdapter;
  * @author Sergey Melnikov
  */
 public class CheckerFramework {
+    private static final String DEFAULT_RESULT_ADAPTER = "checker-type:ifmo";
+    private static final String CHECKER_CLASS_ENTRY = "Checker-Class";
+    private static final String EXPECTED_EXIT_CODE_PROPERTY = "testlib.expected.exitcode";
     private static final String SYS_EXIT_DISABLED = "System.exit(int) did not exit. Exiting abnormally.";
     private static final String USAGE =
             "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]].\n" +
             "    The <verifier_classname> value may also be specified in MANIFEST.MF as Checker-Class attribute.";
-
-    private static final String DEFAULT_RESULT_ADAPTER = "checker-type:ifmo";
-
-    private final static String CHECKER_CLASS_ENTRY = "Checker-Class";
 
     private static HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
 
@@ -107,6 +106,7 @@ public class CheckerFramework {
         }
 
         PrintWriter result;
+        boolean shallCloseResult = true;
 
         String[] verifierArgs;
 
@@ -118,6 +118,7 @@ public class CheckerFramework {
             } else {
                 result = new PrintWriter(new OutputStreamWriter(System.out, "utf-8"));
                 verifierArgs = new String[0];
+                shallCloseResult = false;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -159,8 +160,22 @@ public class CheckerFramework {
         }
 
         resultAdapter.printMessage(outcome, result, args.length <= 4);
-        result.close();
+        if (shallCloseResult) {
+            result.close();
+        } else {
+            result.flush();
+        }
 
-        System.exit(resultAdapter.getExitCodeFor(outcome));
+        int theExitCode = resultAdapter.getExitCodeFor(outcome);
+        String expectedExitCode = System.getProperty(EXPECTED_EXIT_CODE_PROPERTY);
+        if (expectedExitCode != null) {
+            if (String.valueOf(theExitCode).equals(expectedExitCode)) {
+                System.exit(0); // exit codes match
+            } else {
+                System.err.println("Expected exit code is " + expectedExitCode + ", but the actual one is " + theExitCode);
+                System.exit(1); // exit codes did not match
+            }
+        }
+        System.exit(theExitCode);
     }
 }

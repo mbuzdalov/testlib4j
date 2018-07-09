@@ -67,33 +67,16 @@
         <attribute name="expected-exit-code"/>
         <sequential>
             <echo level="info" message="Running checker @{checker} on test: @{description}"/>
-            <local name="actual-exit-code"/>
-            <local name="stored-output"/>
-            <local name="stored-error"/>
-            <java fork="true" classname="ru.ifmo.testlib.CheckerFramework" inputstring=""
-                  resultproperty="actual-exit-code" outputproperty="stored-output" errorproperty="stored-error">
+            <java fork="false" classname="ru.ifmo.testlib.CheckerFramework">
                 <classpath>
                     <pathelement location="${deploy.dir}/testlib4j.jar"/>
                     <pathelement location="${examples.deploy.dir}/@{checker}.jar"/>
                 </classpath>
+                <sysproperty key="testlib.expected.exitcode" value="@{expected-exit-code}"/>
                 <arg value="${example.files.dir}/@{input}"/>
                 <arg value="${example.files.dir}/@{output}"/>
                 <arg value="${example.files.dir}/@{answer}"/>
             </java>
-            <!--suppress AntResolveInspection IDEA does not know why actual-exit-code exists here -->
-            <fail>
-                <condition>
-                    <not>
-                        <!--suppress AntResolveInspection IDEA does not know why actual-exit-code exists here -->
-                        <equals arg1="@{expected-exit-code}" arg2="${actual-exit-code}"/>
-                    </not>
-                </condition>
-Exit codes do not match: expected @{expected-exit-code} found ${actual-exit-code}
-Standard Output:
-${stored-output}
-Standard Error:
-${stored-error}
-            </fail>
         </sequential>
     </macrodef>
 
