@@ -87,6 +87,10 @@
         <compile-example-checker class="YesNo"            name="yesno"/>
     </target>
 
+    <target name="compile-checker-unittests" depends="compile-src">
+        <compile-example-checker class="test/ThrowOkTest" name="test/throw-ok"/>
+    </target>
+
     <target name="test-example-icmp" depends="compile-examples">
         <test-example-checker description="Two equal files with single numbers"
                               name="icmp" expected-exit-code="0"
@@ -231,5 +235,11 @@
                               input="just-text.txt" output="numbers-two-42s.txt" answer="numbers-two-42s-1line.txt"/>
     </target>
 
-    <target name="test-examples" depends="test-example-icmp, test-example-yesno, test-example-ncmp"/>
+    <target name="run-checker-unittests" depends="compile-checker-unittests">
+        <test-example-checker description="Outcome.Type.OK is thrown and there is extra output"
+                              name="test/throw-ok" expected-exit-code="2"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
+    </target>
+
+    <target name="test" depends="run-checker-unittests, test-example-icmp, test-example-yesno, test-example-ncmp"/>
 </project>
