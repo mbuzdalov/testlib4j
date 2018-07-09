@@ -148,7 +148,12 @@ public class CheckerFramework {
         try (InStream input = new FileInStream(new File(args[delta]), Outcome.nonOkayIsFail);
              InStream output = new FileInStream(new File(args[1 + delta]), Collections.emptyMap());
              InStream answer = new FileInStream(new File(args[2 + delta]), Outcome.nonOkayIsFail)) {
-            outcome = checker.test(input, output, answer);
+            try {
+                outcome = checker.test(input, output, answer);
+            } catch (Outcome out) {
+                outcome = out;
+            }
+
             if (outcome.getType() == OK && !output.seekEoF()) {
                 outcome = new Outcome(PE, "Extra information in output file");
             }
