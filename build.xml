@@ -70,7 +70,7 @@
             <local name="actual-exit-code"/>
             <local name="stored-output"/>
             <local name="stored-error"/>
-            <java fork="true" classname="ru.ifmo.testlib.CheckerFramework"
+            <java fork="true" classname="ru.ifmo.testlib.CheckerFramework" inputstring=""
                   resultproperty="actual-exit-code" outputproperty="stored-output" errorproperty="stored-error">
                 <classpath>
                     <pathelement location="${deploy.dir}/testlib4j.jar"/>
