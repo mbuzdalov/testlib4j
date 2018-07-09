@@ -1,7 +1,7 @@
 import ru.ifmo.testlib.*;
 import static ru.ifmo.testlib.Outcome.Type.*;
 
-public final class CompareNumber implements Checker {
+public final class CompareInteger implements Checker {
     public Outcome test(InStream inf, InStream ouf, InStream ans) {
         long answer = ans.nextLong();
         long output = ouf.nextLong();

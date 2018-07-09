@@ -92,7 +92,7 @@ contains the single integer which is the same as the right answer.
 import ru.ifmo.testlib.*;
 import static ru.ifmo.testlib.Outcome.Type.*;
 
-public class CompareNumber implements Checker {
+public class CompareInteger implements Checker {
     public Outcome test(InStream inf, InStream ouf, InStream ans) {
         long answer = ans.nextLong();
         long output = ouf.nextLong();

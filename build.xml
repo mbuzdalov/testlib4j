@@ -43,16 +43,17 @@
     </target>
 
     <macrodef name="compile-example-checker">
-        <attribute name="checker"/>
+        <attribute name="class"/>
+        <attribute name="name"/>
         <sequential>
-            <mkdir dir="${examples.build.dir}/@{checker}"/>
-            <javac srcdir="${examples.source.dir}" destdir="${examples.build.dir}/@{checker}" includeantruntime="false">
-                <include name="@{checker}.java"/>
+            <mkdir dir="${examples.build.dir}/@{name}"/>
+            <javac srcdir="${examples.source.dir}" destdir="${examples.build.dir}/@{name}" includeantruntime="false">
+                <include name="@{class}.java"/>
                 <classpath refid="src.deps"/>
             </javac>
-            <jar destfile="${examples.deploy.dir}/@{checker}.jar" basedir="${examples.build.dir}/@{checker}">
+            <jar destfile="${examples.deploy.dir}/@{name}.jar" basedir="${examples.build.dir}/@{name}">
                 <manifest>
-                    <attribute name="Checker-Class" value="@{checker}"/>
+                    <attribute name="Checker-Class" value="@{class}"/>
                 </manifest>
             </jar>
         </sequential>
@@ -60,17 +61,17 @@
 
     <macrodef name="test-example-checker">
         <attribute name="description"/>
-        <attribute name="checker"/>
+        <attribute name="name"/>
         <attribute name="input"/>
         <attribute name="output"/>
         <attribute name="answer"/>
         <attribute name="expected-exit-code"/>
         <sequential>
-            <echo level="info" message="Running checker @{checker} on test: @{description}"/>
+            <echo level="info" message="Running checker @{name} on test: @{description}"/>
             <java fork="false" failonerror="true" classname="ru.ifmo.testlib.CheckerFramework">
                 <classpath>
                     <pathelement location="${deploy.dir}/testlib4j.jar"/>
-                    <pathelement location="${examples.deploy.dir}/@{checker}.jar"/>
+                    <pathelement location="${examples.deploy.dir}/@{name}.jar"/>
                 </classpath>
                 <sysproperty key="testlib.expected.exitcode" value="@{expected-exit-code}"/>
                 <arg value="${example.files.dir}/@{input}"/>
@@ -81,154 +82,154 @@
     </macrodef>
 
     <target name="compile-examples" depends="compile-src">
-        <compile-example-checker checker="CompareNumber"/>
-        <compile-example-checker checker="YesNo"/>
-        <compile-example-checker checker="CompareIntegers"/>
+        <compile-example-checker class="CompareInteger"   name="icmp"/>
+        <compile-example-checker class="CompareIntegers"  name="ncmp"/>
+        <compile-example-checker class="YesNo"            name="yesno"/>
     </target>
 
-    <target name="test-example-compare-number" depends="compile-examples">
+    <target name="test-example-icmp" depends="compile-examples">
         <test-example-checker description="Two equal files with single numbers"
-                              checker="CompareNumber" expected-exit-code="0"
+                              name="icmp" expected-exit-code="0"
                               input="just-text.txt" output="number-42.txt" answer="number-42.txt"/>
         <test-example-checker description="Two different files with single numbers"
-                              checker="CompareNumber" expected-exit-code="1"
+                              name="icmp" expected-exit-code="1"
                               input="just-text.txt" output="number-32.txt" answer="number-42.txt"/>
         <test-example-checker description="Only contestant's output is not-a-number"
-                              checker="CompareNumber" expected-exit-code="2"
+                              name="icmp" expected-exit-code="2"
                               input="just-text.txt" output="yes.txt" answer="number-32.txt"/>
         <test-example-checker description="Both files are not-a-numbers and equal"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="no.txt" answer="no.txt"/>
         <test-example-checker description="Both files are not-a-numbers and different"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="no.txt"/>
         <test-example-checker description="Only jury's output is not-a-number"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="no.txt"/>
         <test-example-checker description="Contestant's file does not exist"
-                              checker="CompareNumber" expected-exit-code="2"
+                              name="icmp" expected-exit-code="2"
                               input="just-text.txt" output="does-not-exist" answer="number-32.txt"/>
         <test-example-checker description="Jury's file does not exist"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="does-not-exist"/>
         <test-example-checker description="Contestant's file is empty"
-                              checker="CompareNumber" expected-exit-code="2"
+                              name="icmp" expected-exit-code="2"
                               input="just-text.txt" output="empty.txt" answer="number-32.txt"/>
         <test-example-checker description="Jury's file is empty"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="empty.txt"/>
         <test-example-checker description="Jury's file does not exist and contestant's file is not-a-number"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
         <test-example-checker description="Jury's file is empty and contestant's file is not-a-number"
-                              checker="CompareNumber" expected-exit-code="3"
+                              name="icmp" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="empty.txt"/>
         <test-example-checker description="Contestant's file matches but has an extra output"
-                              checker="CompareNumber" expected-exit-code="2"
+                              name="icmp" expected-exit-code="2"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
         <test-example-checker description="Contestant's file does not match and has an extra output"
-                              checker="CompareNumber" expected-exit-code="1"
+                              name="icmp" expected-exit-code="1"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-32.txt"/>
         <test-example-checker description="Jury's file has an extra output"
-                              checker="CompareNumber" expected-exit-code="0"
+                              name="icmp" expected-exit-code="0"
                               input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
     </target>
 
     <target name="test-example-yesno" depends="compile-examples">
         <test-example-checker description="Two equal files with YES"
-                              checker="YesNo" expected-exit-code="0"
+                              name="yesno" expected-exit-code="0"
                               input="just-text.txt" output="yes.txt" answer="yes.txt"/>
         <test-example-checker description="Two equal files with NO"
-                              checker="YesNo" expected-exit-code="0"
+                              name="yesno" expected-exit-code="0"
                               input="just-text.txt" output="no.txt" answer="no.txt"/>
         <test-example-checker description="Expected YES, found NO"
-                              checker="YesNo" expected-exit-code="1"
+                              name="yesno" expected-exit-code="1"
                               input="just-text.txt" output="no.txt" answer="yes.txt"/>
         <test-example-checker description="Expected NO, found YES"
-                              checker="YesNo" expected-exit-code="1"
+                              name="yesno" expected-exit-code="1"
                               input="just-text.txt" output="yes.txt" answer="no.txt"/>
         <test-example-checker description="Contestant's file is neither YES nor NO"
-                              checker="YesNo" expected-exit-code="2"
+                              name="yesno" expected-exit-code="2"
                               input="just-text.txt" output="number-42.txt" answer="no.txt"/>
         <test-example-checker description="Jury's file is neither YES nor NO"
-                              checker="YesNo" expected-exit-code="3"
+                              name="yesno" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="number-42.txt"/>
         <test-example-checker description="Contestant's file does not exist"
-                              checker="YesNo" expected-exit-code="2"
+                              name="yesno" expected-exit-code="2"
                               input="just-text.txt" output="does-not-exist" answer="no.txt"/>
         <test-example-checker description="Jury's file does not exist"
-                              checker="YesNo" expected-exit-code="3"
+                              name="yesno" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
         <test-example-checker description="Contestant's file is empty"
-                              checker="YesNo" expected-exit-code="2"
+                              name="yesno" expected-exit-code="2"
                               input="just-text.txt" output="empty.txt" answer="no.txt"/>
         <test-example-checker description="Jury's file is empty"
-                              checker="YesNo" expected-exit-code="3"
+                              name="yesno" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="empty.txt"/>
         <test-example-checker description="Contestant's file matches but has an extra output"
-                              checker="YesNo" expected-exit-code="2"
+                              name="yesno" expected-exit-code="2"
                               input="just-text.txt" output="just-text.txt" answer="yes.txt"/>
         <test-example-checker description="Contestant's file does not match and has an extra output"
-                              checker="YesNo" expected-exit-code="1"
+                              name="yesno" expected-exit-code="1"
                               input="just-text.txt" output="just-text.txt" answer="no.txt"/>
         <test-example-checker description="Jury's file has an extra output"
-                              checker="YesNo" expected-exit-code="0"
+                              name="yesno" expected-exit-code="0"
                               input="just-text.txt" output="yes.txt" answer="just-text.txt"/>
     </target>
 
-    <target name="test-example-compare-integers" depends="compile-examples">
+    <target name="test-example-ncmp" depends="compile-examples">
         <test-example-checker description="Two equal files with single numbers"
-                              checker="CompareIntegers" expected-exit-code="0"
+                              name="ncmp" expected-exit-code="0"
                               input="just-text.txt" output="number-42.txt" answer="number-42.txt"/>
         <test-example-checker description="Two different files with single numbers"
-                              checker="CompareIntegers" expected-exit-code="1"
+                              name="ncmp" expected-exit-code="1"
                               input="just-text.txt" output="number-32.txt" answer="number-42.txt"/>
         <test-example-checker description="Only contestant's output is not-a-number"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="yes.txt" answer="number-32.txt"/>
         <test-example-checker description="Both files are not-a-numbers and equal"
-                              checker="CompareIntegers" expected-exit-code="3"
+                              name="ncmp" expected-exit-code="3"
                               input="just-text.txt" output="no.txt" answer="no.txt"/>
         <test-example-checker description="Both files are not-a-numbers and different"
-                              checker="CompareIntegers" expected-exit-code="3"
+                              name="ncmp" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="no.txt"/>
         <test-example-checker description="Only jury's output is not-a-number"
-                              checker="CompareIntegers" expected-exit-code="3"
+                              name="ncmp" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="no.txt"/>
         <test-example-checker description="Contestant's file does not exist"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="does-not-exist" answer="number-32.txt"/>
         <test-example-checker description="Jury's file does not exist"
-                              checker="CompareIntegers" expected-exit-code="3"
+                              name="ncmp" expected-exit-code="3"
                               input="just-text.txt" output="number-32.txt" answer="does-not-exist"/>
         <test-example-checker description="Contestant's file is empty"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="empty.txt" answer="number-32.txt"/>
         <test-example-checker description="Jury's file is empty"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="number-32.txt" answer="empty.txt"/>
         <test-example-checker description="Jury's file does not exist and contestant's file is not-a-number"
-                              checker="CompareIntegers" expected-exit-code="3"
+                              name="ncmp" expected-exit-code="3"
                               input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
         <test-example-checker description="Jury's file is empty and contestant's file is not-a-number"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="yes.txt" answer="empty.txt"/>
         <test-example-checker description="Contestant's file matches but has an extra output"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
         <test-example-checker description="Contestant's file does not match and has an extra output"
-                              checker="CompareIntegers" expected-exit-code="1"
+                              name="ncmp" expected-exit-code="1"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-32.txt"/>
         <test-example-checker description="Jury's file has an extra output"
-                              checker="CompareIntegers" expected-exit-code="2"
+                              name="ncmp" expected-exit-code="2"
                               input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
         <test-example-checker description="Two equal files with multiple numbers"
-                              checker="CompareIntegers" expected-exit-code="0"
+                              name="ncmp" expected-exit-code="0"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="numbers-two-42s.txt"/>
         <test-example-checker description="Two files with same numbers but different whitespace"
-                              checker="CompareIntegers" expected-exit-code="0"
+                              name="ncmp" expected-exit-code="0"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="numbers-two-42s-1line.txt"/>
     </target>
 
-    <target name="test-examples" depends="test-example-compare-number, test-example-yesno, test-example-compare-integers"/>
+    <target name="test-examples" depends="test-example-icmp, test-example-yesno, test-example-ncmp"/>
 </project>
