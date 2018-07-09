@@ -100,6 +100,7 @@ ${stored-error}
     <target name="compile-examples" depends="compile-src">
         <compile-example-checker checker="CompareNumber"/>
         <compile-example-checker checker="YesNo"/>
+        <compile-example-checker checker="CompareIntegers"/>
     </target>
 
     <target name="test-example-compare-number" depends="compile-examples">
@@ -145,7 +146,6 @@ ${stored-error}
         <test-example-checker description="Contestant's file does not match and has an extra output"
                               checker="CompareNumber" expected-exit-code="1"
                               input="just-text.txt" output="numbers-two-42s.txt" answer="number-32.txt"/>
-        <!-- TODO I am not sure whether we want this -->
         <test-example-checker description="Jury's file has an extra output"
                               checker="CompareNumber" expected-exit-code="0"
                               input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
@@ -188,11 +188,64 @@ ${stored-error}
         <test-example-checker description="Contestant's file does not match and has an extra output"
                               checker="YesNo" expected-exit-code="1"
                               input="just-text.txt" output="just-text.txt" answer="no.txt"/>
-        <!-- TODO I am not sure whether we want this -->
         <test-example-checker description="Jury's file has an extra output"
                               checker="YesNo" expected-exit-code="0"
                               input="just-text.txt" output="yes.txt" answer="just-text.txt"/>
     </target>
 
-    <target name="test-examples" depends="test-example-compare-number, test-example-yesno"/>
+    <target name="test-example-compare-integers" depends="compile-examples">
+        <test-example-checker description="Two equal files with single numbers"
+                              checker="CompareIntegers" expected-exit-code="0"
+                              input="just-text.txt" output="number-42.txt" answer="number-42.txt"/>
+        <test-example-checker description="Two different files with single numbers"
+                              checker="CompareIntegers" expected-exit-code="1"
+                              input="just-text.txt" output="number-32.txt" answer="number-42.txt"/>
+        <test-example-checker description="Only contestant's output is not-a-number"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="yes.txt" answer="number-32.txt"/>
+        <test-example-checker description="Both files are not-a-numbers and equal"
+                              checker="CompareIntegers" expected-exit-code="3"
+                              input="just-text.txt" output="no.txt" answer="no.txt"/>
+        <test-example-checker description="Both files are not-a-numbers and different"
+                              checker="CompareIntegers" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="no.txt"/>
+        <test-example-checker description="Only jury's output is not-a-number"
+                              checker="CompareIntegers" expected-exit-code="3"
+                              input="just-text.txt" output="number-32.txt" answer="no.txt"/>
+        <test-example-checker description="Contestant's file does not exist"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="does-not-exist" answer="number-32.txt"/>
+        <test-example-checker description="Jury's file does not exist"
+                              checker="CompareIntegers" expected-exit-code="3"
+                              input="just-text.txt" output="number-32.txt" answer="does-not-exist"/>
+        <test-example-checker description="Contestant's file is empty"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="empty.txt" answer="number-32.txt"/>
+        <test-example-checker description="Jury's file is empty"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="number-32.txt" answer="empty.txt"/>
+        <test-example-checker description="Jury's file does not exist and contestant's file is not-a-number"
+                              checker="CompareIntegers" expected-exit-code="3"
+                              input="just-text.txt" output="yes.txt" answer="does-not-exist"/>
+        <test-example-checker description="Jury's file is empty and contestant's file is not-a-number"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="yes.txt" answer="empty.txt"/>
+        <test-example-checker description="Contestant's file matches but has an extra output"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="number-42.txt"/>
+        <test-example-checker description="Contestant's file does not match and has an extra output"
+                              checker="CompareIntegers" expected-exit-code="1"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="number-32.txt"/>
+        <test-example-checker description="Jury's file has an extra output"
+                              checker="CompareIntegers" expected-exit-code="2"
+                              input="just-text.txt" output="number-42.txt" answer="numbers-two-42s.txt"/>
+        <test-example-checker description="Two equal files with multiple numbers"
+                              checker="CompareIntegers" expected-exit-code="0"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="numbers-two-42s.txt"/>
+        <test-example-checker description="Two files with same numbers but different whitespace"
+                              checker="CompareIntegers" expected-exit-code="0"
+                              input="just-text.txt" output="numbers-two-42s.txt" answer="numbers-two-42s-1line.txt"/>
+    </target>
+
+    <target name="test-examples" depends="test-example-compare-number, test-example-yesno, test-example-compare-integers"/>
 </project>
