@@ -98,7 +98,7 @@ public class CheckerFramework {
 
         Checker checker;
         try {
-            checker = (Checker) (Class.forName(checkerClassName).newInstance());
+            checker = (Checker) (Class.forName(checkerClassName.replace('/', '.')).newInstance());
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             e.printStackTrace();
             fatal(e.getMessage());
