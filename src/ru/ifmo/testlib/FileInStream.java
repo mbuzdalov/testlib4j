@@ -205,6 +205,6 @@ public class FileInStream implements InStream {
      * @throws Outcome the newly created outcome.
      */
 	public Outcome quit(Outcome.Type type, String message) {
-        return new Outcome(outcomeMapping.getOrDefault(type, type), message);
+        throw new Outcome(outcomeMapping.getOrDefault(type, type), message);
     }
 }

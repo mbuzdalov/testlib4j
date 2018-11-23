@@ -173,6 +173,6 @@ public interface InStream extends Closeable {
      * @throws Outcome the newly created outcome.
      */
     default Outcome quit(Outcome.Type type, String formatString, Object... arguments) {
-        return quit(type, String.format(formatString, arguments));
+        throw quit(type, String.format(formatString, arguments));
     }
 }
