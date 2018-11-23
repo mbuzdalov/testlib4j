@@ -95,16 +95,30 @@ public class CheckerFramework {
             printUsageAndExit();
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
+        Class<?> checkerClass;
 
-        Checker checker;
         try {
-            checker = (Checker) (Class.forName(checkerClassName.replace('/', '.')).newInstance());
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            checkerClass = Class.forName(checkerClassName.replace('/', '.'));
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
             fatal(e.getMessage());
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
+        run(args, delta, instantiateChecker(checkerClass));
+    }
+
+    private static Checker instantiateChecker(Class<?> checkerClass) {
+        try {
+            return (Checker) (checkerClass.newInstance());
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+            fatal(e.getMessage());
+            throw new RuntimeException(SYS_EXIT_DISABLED);
+        }
+    }
+
+    private static void run(String[] args, int delta, Checker checker) {
         PrintWriter result;
         boolean shallCloseResult = true;
 
@@ -182,5 +196,19 @@ public class CheckerFramework {
             }
         }
         System.exit(theExitCode);
+    }
+
+    public static void runChecker(Class<? extends Checker> checkerClass, String[] args) {
+        runChecker(instantiateChecker(checkerClass), args);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void runChecker(Checker checker, String[] args) {
+        if (args.length < 3) {
+            System.err.println("Usage: <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]]");
+            System.exit(3);
+            throw new RuntimeException(SYS_EXIT_DISABLED);
+        }
+        run(args, 0, checker);
     }
 }
