@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -130,7 +131,7 @@ public class CheckerFramework {
                 verifierArgs = new String[args.length - 4 - delta];
                 System.arraycopy(args, 4 + delta, verifierArgs, 0, verifierArgs.length);
             } else {
-                result = new PrintWriter(new OutputStreamWriter(System.out, "utf-8"));
+                result = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
                 verifierArgs = new String[0];
                 shallCloseResult = false;
             }
