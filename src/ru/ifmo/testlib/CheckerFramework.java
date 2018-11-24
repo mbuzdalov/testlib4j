@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.AccessControlException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -187,14 +188,18 @@ public class CheckerFramework {
         }
 
         int theExitCode = resultAdapter.getExitCodeFor(outcome);
-        String expectedExitCode = System.getProperty(EXPECTED_EXIT_CODE_PROPERTY);
-        if (expectedExitCode != null) {
-            if (String.valueOf(theExitCode).equals(expectedExitCode)) {
-                System.exit(0); // exit codes match
-            } else {
-                System.err.println("Expected exit code is " + expectedExitCode + ", but the actual one is " + theExitCode);
-                System.exit(1); // exit codes did not match
+        try {
+            String expectedExitCode = System.getProperty(EXPECTED_EXIT_CODE_PROPERTY);
+            if (expectedExitCode != null) {
+                if (String.valueOf(theExitCode).equals(expectedExitCode)) {
+                    System.exit(0); // exit codes match
+                } else {
+                    System.err.println("Expected exit code is " + expectedExitCode + ", but the actual one is " + theExitCode);
+                    System.exit(1); // exit codes did not match
+                }
             }
+        } catch (AccessControlException e) {
+            // nop
         }
         System.exit(theExitCode);
     }
