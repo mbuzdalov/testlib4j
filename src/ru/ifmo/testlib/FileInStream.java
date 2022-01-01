@@ -39,6 +39,10 @@ public class FileInStream implements InStream {
 		reset();
 	}
 
+	public void setOutcomeMapping(Outcome.Type from, Outcome.Type to) {
+		outcomeMapping.put(from, to);
+	}
+
 	public void reset() {
 		try {
 			if (reader != null) {
