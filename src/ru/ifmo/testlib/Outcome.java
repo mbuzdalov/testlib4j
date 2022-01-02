@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Sergey Melnikov
  */
 public class Outcome extends RuntimeException {
-    /**
+	/**
      * Throws a new outcome with the given type and message composed from the given format string and arguments.
      *
      * @param type the type of the outcome.
@@ -27,10 +27,36 @@ public class Outcome extends RuntimeException {
 	}
 
 	/**
+	 * Throws a new outcome with the given type and message composed from the given format string and arguments.
+	 *
+	 * @param points outcome points.
+	 * @param formatString the format string for the message to be specified in the outcome.
+	 * @param arguments the arguments for the message to be specified in the outcome.
+	 * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+	 * @throws Outcome the newly created outcome.
+	 */
+	public static Outcome quitp(double points, String formatString, Object... arguments) {
+		throw new PointsOutcome(points, String.format(formatString, arguments));
+	}
+
+	/**
+	 * Throws a new outcome with the given type and message composed from the given format string and arguments.
+	 *
+	 * @param points outcome points.
+	 * @param formatString the format string for the message to be specified in the outcome.
+	 * @param arguments the arguments for the message to be specified in the outcome.
+	 * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+	 * @throws Outcome the newly created outcome.
+	 */
+	public static Outcome quitp(int points, String formatString, Object... arguments) {
+		throw new PointsOutcome(points, String.format(formatString, arguments));
+	}
+
+	/**
 	 * Possible outcome types.
 	 */
 	public enum Type {
-		OK, WA, PE, FAIL
+		OK, WA, PE, FAIL, POINTS
 	}
 
     /**

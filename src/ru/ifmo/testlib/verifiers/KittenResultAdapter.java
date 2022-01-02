@@ -31,6 +31,7 @@ public class KittenResultAdapter implements ResultAdapter {
             case OK:   return 0;
             case PE:   return 2;
             case FAIL: return 3;
+            case POINTS: throw new UnsupportedOperationException();
             default:   return 1;
         }
     }
@@ -56,6 +57,8 @@ public class KittenResultAdapter implements ResultAdapter {
             case WA:
                 logWriter.print("* Неверный ответ * ");
                 break;
+            case POINTS:
+                throw new UnsupportedOperationException();
             default:
                 logWriter.print("Непонятный код завершения ??? ");
         }
