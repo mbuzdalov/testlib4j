@@ -1,8 +1,8 @@
 package ru.ifmo.testlib;
 
 public class PointsOutcome extends Outcome {
-    double points;
-    boolean isInt;
+    private double points;
+    private boolean isInt;
     public PointsOutcome(double points, String comment) {
         super(Type.POINTS, comment);
         this.points = points;
