@@ -19,7 +19,7 @@ public class IFMOResultAdapter implements ResultAdapter {
     private boolean xmlMode;
 
     private String[] outcomes = {
-        "accepted", "wrong-answer", "presentation-error", "fail"
+        "accepted", "wrong-answer", "presentation-error", "fail", "points"
     };
 
     /**
@@ -47,6 +47,7 @@ public class IFMOResultAdapter implements ResultAdapter {
             case WA:   return 1;
             case PE:   return 2;
             case FAIL: return 3;
+            case POINTS: return 7;
             default:   return 3;
         }
     }
@@ -72,6 +73,9 @@ public class IFMOResultAdapter implements ResultAdapter {
                 break;
             case WA:
                 result.print("wrong answer ");
+                break;
+            case POINTS:
+                result.print("points ");
                 break;
             }
             result.println(outcome.getComment());

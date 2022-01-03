@@ -175,4 +175,60 @@ public interface InStream extends Closeable {
     default Outcome quit(Outcome.Type type, String formatString, Object... arguments) {
         throw quit(type, String.format(formatString, arguments));
     }
+
+    /**
+     * Throws a new outcome with the given type and message,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param points outcome points.
+     * @param message the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    default Outcome quitp(double points, String message) {
+        throw new PointsOutcome(points, message);
+    }
+
+    /**
+     * Throws a new outcome with the given type and message composed from the given format string and arguments,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param points outcome points.
+     * @param formatString the format string for the message to be specified in the outcome.
+     * @param arguments the arguments for the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    default Outcome quitp(double points, String formatString, Object... arguments) {
+        throw quitp(points, String.format(formatString, arguments));
+    }
+
+    /**
+     * Throws a new outcome with the given type and message,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param points outcome points.
+     * @param message the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    default Outcome quitp(int points, String message) {
+        throw new PointsOutcome(points, message);
+    }
+
+    /**
+     * Throws a new outcome with the given type and message composed from the given format string and arguments,
+     * where the type is adjusted in order to match the semantics of this particular stream.
+     *
+     * @param points outcome points.
+     * @param formatString the format string for the message to be specified in the outcome.
+     * @param arguments the arguments for the message to be specified in the outcome.
+     * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
+     * @throws Outcome the newly created outcome.
+     */
+    default Outcome quitp(int points, String formatString, Object... arguments) {
+        throw quitp(points, String.format(formatString, arguments));
+    }
+
+    void setOutcomeMapping(Outcome.Type from, Outcome.Type to);
 }
