@@ -8,6 +8,6 @@ package ru.ifmo.testlib;
  */
 public interface Validator {
     
-    Outcome validate (InStream out);
+    void validate (InStream in);
     
 }

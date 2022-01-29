@@ -3,6 +3,8 @@ package ru.ifmo.testlib;
 import java.io.Closeable;
 import java.math.BigInteger;
 
+import ru.ifmo.testlib.Outcome.Type;
+
 /**
  * An interface for reading input files.
  *
@@ -93,6 +95,8 @@ public interface InStream extends Closeable {
      * @return next {@link String} token;
      */
     String nextToken(String before, String after);
+    
+    String nextToken(String before, String after, Type errorType);
 
     /**
      * Returns next {@link String} token with specified delimiters.
@@ -115,6 +119,8 @@ public interface InStream extends Closeable {
      * @return next {@code int}.
      */
     int nextInt();
+    
+    int nextInt(Type errorType);
 
     /**
      * Returns next {@code long}. Whitespace characters are used as delimiters.
@@ -122,6 +128,8 @@ public interface InStream extends Closeable {
      * @return next {@code long}.
      */
     long nextLong();
+    
+    long nextLong(Type errorType);
 
     /**
      * Returns next {@link BigInteger}. Whitespace characters are used as delimiters.
@@ -129,6 +137,8 @@ public interface InStream extends Closeable {
      * @return next {@link BigInteger}.
      */
     BigInteger nextBigInteger();
+    
+    BigInteger nextBigInteger(Type errorType);
 
     /**
      * Returns next {@code float}. Whitespace characters are used as delimiters.
@@ -136,6 +146,8 @@ public interface InStream extends Closeable {
      * @return next {@code float}.
      */
     float nextFloat();
+    
+    float nextFloat(Type errorType);
 
     /**
      * Returns next {@code double}. Whitespace characters are used as delimiters.
@@ -143,6 +155,8 @@ public interface InStream extends Closeable {
      * @return next {@code double}.
      */
     double nextDouble();
+    
+    double nextDouble(Type errorType);
 
     /**
      * Returns unread part of current line.

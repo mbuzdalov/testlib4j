@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -30,6 +31,7 @@ public class CheckerFramework {
     
     private static final String DEFAULT_RESULT_ADAPTER = "checker-type:ifmo";
     private static final String CHECKER_CLASS_ENTRY = "Checker-Class";
+    @SuppressWarnings ("unused")
     private static final String MAIN_CLASS_ENTRY = "Main-Class";
     private static final String EXPECTED_EXIT_CODE_PROPERTY = "testlib.expected.exitcode";
     private static final String SYS_EXIT_DISABLED = "System.exit(int) did not exit. Exiting abnormally.";
@@ -37,8 +39,8 @@ public class CheckerFramework {
             "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]].\n" +
             "    The <verifier_classname> value may also be specified in MANIFEST.MF as Checker-Class attribute.";
     
-    private static final String POLYGON_VALIDATOR_PARAM = "--testOverviewLogFileName";
-    private static final String USAGE_VALIDATOR = "Usage: " + POLYGON_VALIDATOR_PARAM + " <output_file>.";
+    private static final String POLYGON_VALIDATOR_LOG_PARAM = "--testOverviewLogFileName";
+    private static final String USAGE_VALIDATOR = "Usage: --testset, --group or " + POLYGON_VALIDATOR_LOG_PARAM + " <output_file>.";
 
     private static HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
 
@@ -52,14 +54,14 @@ public class CheckerFramework {
         registerResultAdapter("checker-type:ejudge", new EJudgeResultAdapter());
     }
 
-    private static void printUsageAndExit() {
-        System.err.println(USAGE);
-        System.exit(3);
+    private static void printUsageAndExit () {
+        System.err.println (USAGE);
+        System.exit (3);
     }
     
-    private static void printValidatorUsageAndExit() {
-        System.err.println(USAGE_VALIDATOR);
-        System.exit(3);
+    private static void printValidatorUsageAndExit () {
+        System.err.println (USAGE_VALIDATOR);
+        System.exit (3);
     }
 
     private static void fatal(String message, Object... args) {
@@ -84,8 +86,12 @@ public class CheckerFramework {
         return null;
     }
 
+    private static final Set <String> POLYGON_VALIDATOR_PARAMS = Set.of (
+        POLYGON_VALIDATOR_LOG_PARAM, "--testset", "--group"
+    );
+    
     public static void main (String ... args) {
-        if (args.length > 0 && args [0].equals (POLYGON_VALIDATOR_PARAM)) {
+        if (args.length > 0 && POLYGON_VALIDATOR_PARAMS.contains (args [0])) {
             runValidatorFlow (args);
         } else {
             runCheckerFlow (args);
@@ -95,25 +101,33 @@ public class CheckerFramework {
     private static void runValidatorFlow (String ... args) {
         if (args.length < 2) {
             printValidatorUsageAndExit ();
-            throw new RuntimeException(SYS_EXIT_DISABLED);
+            throw new RuntimeException (SYS_EXIT_DISABLED);
         }
         
-        final var validatorClassName = findEntryPointInManifest (MAIN_CLASS_ENTRY);
-        final var validator = instantiateValidator (validatorClassName);
+        final var validator = instantiateValidator ("Validate");
+        final var resultAdapter = new IFMOResultAdapter ();
+        resultAdapter.initArgs (args);
         
-        final var pw = new PrintWriter (System.out);
-        try (final var out = new FileInStream (new File (args [1]), Outcome.nonOkayIsFail)) {
-            final var resultAdapter = new IFMOResultAdapter ();
-            final var outcome = validator.validate (out);
-            
+        try (
+            final var in = new InputStreamInStream (System.in, Map.of ());
+        ) {
+            validator.validate (in);
+        } catch (Outcome outcome) {
+            final var pw = new PrintWriter (System.out, true);
             resultAdapter.printMessage (outcome, pw, true);
+            pw.flush ();
+            
             finishForOutcome (outcome, resultAdapter);
+        } catch (Exception e) {
+            e.printStackTrace ();
         }
     }
     
     private static Validator instantiateValidator (String className) {
         try {
+            // System.err.println ("Class name: " + className);
             final var type = Class.forName (className.replace ('/', '.'));
+            // System.err.println ("Type: " + type);
             
             try {
                 return (Validator) type.getConstructor ().newInstance ();
@@ -121,9 +135,9 @@ public class CheckerFramework {
                 InstantiationException | IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException | NoSuchMethodException | SecurityException e
             ) {
-                e.printStackTrace();
-                fatal(e.getMessage());
-                throw new RuntimeException(SYS_EXIT_DISABLED);
+                e.printStackTrace ();
+                fatal (e.getMessage ());
+                throw new RuntimeException (SYS_EXIT_DISABLED);
             }
         } catch (ClassNotFoundException cnfe) {
             cnfe.printStackTrace ();
@@ -253,21 +267,22 @@ public class CheckerFramework {
     }
     
     private static void finishForOutcome (Outcome outcome, ResultAdapter resultAdapter) {
-        int theExitCode = resultAdapter.getExitCodeFor(outcome);
+        int theExitCode = resultAdapter.getExitCodeFor (outcome);
         try {
-            String expectedExitCode = System.getProperty(EXPECTED_EXIT_CODE_PROPERTY);
+            String expectedExitCode = System.getProperty (EXPECTED_EXIT_CODE_PROPERTY);
             if (expectedExitCode != null) {
-                if (String.valueOf(theExitCode).equals(expectedExitCode)) {
-                    System.exit(0); // exit codes match
+                if (String.valueOf (theExitCode).equals (expectedExitCode)) {
+                    System.exit (0); // exit codes match
                 } else {
-                    System.err.println("Expected exit code is " + expectedExitCode + ", but the actual one is " + theExitCode);
-                    System.exit(1); // exit codes did not match
+                    System.err.println ("Expected exit code is " + expectedExitCode + ", but the actual one is " + theExitCode);
+                    System.exit (1); // exit codes did not match
                 }
             }
         } catch (AccessControlException e) {
             // nop
         }
-        System.exit(theExitCode);
+        
+        System.exit (theExitCode);
     }
 
     public static void runChecker (Class <? extends Checker> checkerClass, String [] args) {
