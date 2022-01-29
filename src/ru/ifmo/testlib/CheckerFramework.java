@@ -1,19 +1,19 @@
 package ru.ifmo.testlib;
 
+import static ru.ifmo.testlib.Outcome.Type.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import static ru.ifmo.testlib.Outcome.Type.*;
 import ru.ifmo.testlib.verifiers.EJudgeResultAdapter;
 import ru.ifmo.testlib.verifiers.IFMOResultAdapter;
 import ru.ifmo.testlib.verifiers.KittenResultAdapter;
@@ -27,13 +27,18 @@ import ru.ifmo.testlib.verifiers.KittenResultAdapter;
  * @author Sergey Melnikov
  */
 public class CheckerFramework {
+    
     private static final String DEFAULT_RESULT_ADAPTER = "checker-type:ifmo";
     private static final String CHECKER_CLASS_ENTRY = "Checker-Class";
+    private static final String MAIN_CLASS_ENTRY = "Main-Class";
     private static final String EXPECTED_EXIT_CODE_PROPERTY = "testlib.expected.exitcode";
     private static final String SYS_EXIT_DISABLED = "System.exit(int) did not exit. Exiting abnormally.";
     private static final String USAGE =
             "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]].\n" +
             "    The <verifier_classname> value may also be specified in MANIFEST.MF as Checker-Class attribute.";
+    
+    private static final String POLYGON_VALIDATOR_PARAM = "--testOverviewLogFileName";
+    private static final String USAGE_VALIDATOR = "Usage: " + POLYGON_VALIDATOR_PARAM + " <output_file>.";
 
     private static HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
 
@@ -51,19 +56,24 @@ public class CheckerFramework {
         System.err.println(USAGE);
         System.exit(3);
     }
+    
+    private static void printValidatorUsageAndExit() {
+        System.err.println(USAGE_VALIDATOR);
+        System.exit(3);
+    }
 
     private static void fatal(String message, Object... args) {
         System.err.println(String.format(message, args));
         System.exit(3);
     }
 
-    private static String findCheckerInManifest() {
+    private static String findEntryPointInManifest (String property) {
         try {
-            Enumeration<URL> resources = CheckerFramework.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-            while (resources.hasMoreElements()) {
-                Manifest manifest = new Manifest(resources.nextElement().openStream());
-                Attributes attrs = manifest.getMainAttributes();
-                String checkerClass = attrs.getValue(CHECKER_CLASS_ENTRY);
+            final var resources = CheckerFramework.class.getClassLoader ().getResources ("META-INF/MANIFEST.MF");
+            while (resources.hasMoreElements ()) {
+                Manifest manifest = new Manifest (resources.nextElement ().openStream ());
+                Attributes attrs = manifest.getMainAttributes ();
+                String checkerClass = attrs.getValue (property);
                 if (checkerClass != null) {
                     return checkerClass;
                 }
@@ -74,14 +84,62 @@ public class CheckerFramework {
         return null;
     }
 
-    public static void main(String[] args) {
+    public static void main (String ... args) {
+        if (args.length > 0 && args [0].equals (POLYGON_VALIDATOR_PARAM)) {
+            runValidatorFlow (args);
+        } else {
+            runCheckerFlow (args);
+        }
+    }
+    
+    private static void runValidatorFlow (String ... args) {
+        if (args.length < 2) {
+            printValidatorUsageAndExit ();
+            throw new RuntimeException(SYS_EXIT_DISABLED);
+        }
+        
+        final var validatorClassName = findEntryPointInManifest (MAIN_CLASS_ENTRY);
+        final var validator = instantiateValidator (validatorClassName);
+        
+        final var pw = new PrintWriter (System.out);
+        try (final var out = new FileInStream (new File (args [1]), Outcome.nonOkayIsFail)) {
+            final var resultAdapter = new IFMOResultAdapter ();
+            final var outcome = validator.validate (out);
+            
+            resultAdapter.printMessage (outcome, pw, true);
+            finishForOutcome (outcome, resultAdapter);
+        }
+    }
+    
+    private static Validator instantiateValidator (String className) {
+        try {
+            final var type = Class.forName (className.replace ('/', '.'));
+            
+            try {
+                return (Validator) type.getConstructor ().newInstance ();
+            } catch (
+                InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e
+            ) {
+                e.printStackTrace();
+                fatal(e.getMessage());
+                throw new RuntimeException(SYS_EXIT_DISABLED);
+            }
+        } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace ();
+            fatal (cnfe.getMessage ());
+            throw new RuntimeException (SYS_EXIT_DISABLED);
+        }
+    }
+
+    private static void runCheckerFlow (String ... args) {
         int delta = 0;
         if (args.length < 3 + delta) {
             printUsageAndExit();
             throw new RuntimeException(SYS_EXIT_DISABLED);
         }
 
-        String checkerClassName = findCheckerInManifest();
+        String checkerClassName = findEntryPointInManifest (CHECKER_CLASS_ENTRY);
         if (checkerClassName == null) {
             checkerClassName = args[0];
         }
@@ -109,11 +167,15 @@ public class CheckerFramework {
 
         run(args, delta, instantiateChecker(checkerClass));
     }
-
+    
     private static Checker instantiateChecker(Class<?> checkerClass) {
         try {
-            return (Checker) (checkerClass.newInstance());
-        } catch (InstantiationException | IllegalAccessException e) {
+            return (Checker) (checkerClass.getConstructor ().newInstance ());
+        } catch (
+            InstantiationException | IllegalAccessException 
+            | IllegalArgumentException | InvocationTargetException 
+            | NoSuchMethodException | SecurityException e
+        ) {
             e.printStackTrace();
             fatal(e.getMessage());
             throw new RuntimeException(SYS_EXIT_DISABLED);
@@ -162,7 +224,7 @@ public class CheckerFramework {
 
         Outcome outcome;
         try (InStream input = new FileInStream(new File(args[delta]), Outcome.nonOkayIsFail);
-             InStream output = new FileInStream(new File(args[1 + delta]), Collections.emptyMap());
+             InStream output = new FileInStream(new File(args[1 + delta]), Map.of ());
              InStream answer = new FileInStream(new File(args[2 + delta]), Outcome.nonOkayIsFail)) {
             try {
                 outcome = checker.test(input, output, answer);
@@ -187,6 +249,10 @@ public class CheckerFramework {
             result.flush();
         }
 
+        finishForOutcome (outcome, resultAdapter);
+    }
+    
+    private static void finishForOutcome (Outcome outcome, ResultAdapter resultAdapter) {
         int theExitCode = resultAdapter.getExitCodeFor(outcome);
         try {
             String expectedExitCode = System.getProperty(EXPECTED_EXIT_CODE_PROPERTY);
@@ -204,11 +270,10 @@ public class CheckerFramework {
         System.exit(theExitCode);
     }
 
-    public static void runChecker(Class<? extends Checker> checkerClass, String[] args) {
-        runChecker(instantiateChecker(checkerClass), args);
+    public static void runChecker (Class <? extends Checker> checkerClass, String [] args) {
+        runChecker (instantiateChecker (checkerClass), args);
     }
-
-    @SuppressWarnings("WeakerAccess")
+    
     public static void runChecker(Checker checker, String[] args) {
         if (args.length < 3) {
             System.err.println("Usage: <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]]");

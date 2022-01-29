@@ -13,7 +13,10 @@ import java.util.Map;
  * @author Sergey Melnikov
  */
 public class Outcome extends RuntimeException {
-	/**
+    
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Throws a new outcome with the given type and message composed from the given format string and arguments.
      *
      * @param type the type of the outcome.

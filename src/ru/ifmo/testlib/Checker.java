@@ -9,6 +9,7 @@ package ru.ifmo.testlib;
  * @author Sergey Melnikov
  */
 public interface Checker {
+    
     /**
      * Runs the checker on the given input, output and answer streams.
      * Returns (or throws, at the discretion of the implementor) the outcome.
@@ -20,4 +21,5 @@ public interface Checker {
      * @throws Outcome the outcome.
      */
     Outcome test(InStream inf, InStream ouf, InStream ans);
+    
 }
