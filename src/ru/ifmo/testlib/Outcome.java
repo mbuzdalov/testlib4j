@@ -111,4 +111,9 @@ public class Outcome extends RuntimeException {
 	public String getComment() {
 		return comment;
 	}
+	
+	@Override
+	public String toString () {
+	    return getClass ().getName () + ": " + comment;
+	}
 }

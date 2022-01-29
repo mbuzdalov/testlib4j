@@ -135,12 +135,37 @@ public class InputStreamInStream implements InStream {
     }
     
     public int nextInt (Type type) {
-        String word = nextToken();
-        try {
-            return Integer.parseInt(word);
-        } catch (NumberFormatException ex) {
-            word = word.length () > 100 ? word.substring (100) : word;
-            throw quit(type, String.format("A 32-bit signed integer expected, %s found", word), ex);
+        skip (" \t\r\n");
+        
+        final var sb = new StringBuilder ();
+        if (currChar == '-') {
+            sb.append ((char) currChar);
+            nextChar ();
+        }
+        while (!isEoLn () && Character.isDigit (currChar)) {
+            sb.append ((char) currChar);
+            nextChar ();
+        }
+        
+        if (!isEoLn () && !Character.isWhitespace (currChar)) {
+            String found = sb.toString ();
+            if (sb.length () > 100) {
+                found = sb.substring (0, 100) + "...";
+            }
+            
+            throw quit (type, String.format("A 32-bit signed integer expected, %s found", found + ((char) currChar)));
+        } else if (sb.length () == 0) {
+            throw quit (type, String.format("A 32-bit signed integer expected but nothing found"));            
+        }
+        
+        try {            
+            return Integer.parseInt (sb.toString ());
+        } catch (NumberFormatException nfe) {
+            try {
+                return Integer.parseUnsignedInt (sb.toString ());
+            } catch (NumberFormatException nfee) {
+                throw quit (type, String.format("A 32-bit signed integer expected but a larger number found"));
+            }
         }
     }
 
