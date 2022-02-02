@@ -81,12 +81,24 @@ public class InputStreamInStream implements InStream {
         }
         return isEoF();
     }
+    
+    public void assertEoF (String message) throws Outcome {
+        if (!seekEoF ()) {
+            throw Outcome.quit (Type.PE, message);
+        }
+    }
 
     public boolean seekEoLn() {
         while (!isEoLn() && Character.isWhitespace(currChar)) {
             nextChar();
         }
         return isEoLn();
+    }
+    
+    public void assertEoLn (String message) throws Outcome {
+        if (!seekEoLn ()) {
+            throw Outcome.quit (Type.PE, message);
+        }
     }
 
     public void skipLine() {
@@ -155,7 +167,7 @@ public class InputStreamInStream implements InStream {
             
             throw quit (type, String.format("A 32-bit signed integer expected, %s found", found + ((char) currChar)));
         } else if (sb.length () == 0) {
-            throw quit (type, String.format("A 32-bit signed integer expected but nothing found"));            
+            throw quit (type, String.format("A 32-bit signed integer expected but nothing found"));
         }
         
         try {            

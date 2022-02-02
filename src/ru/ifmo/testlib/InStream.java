@@ -43,6 +43,8 @@ public interface InStream extends Closeable {
      * @return whether the end of file was reached.
      */
     boolean isEoF();
+    
+    void assertEoF (String message) throws Outcome;
 
     /**
      * Returns whether the end of line was reached.
@@ -50,6 +52,8 @@ public interface InStream extends Closeable {
      * @return whether the end of line was reached.
      */
     boolean isEoLn();
+    
+    void assertEoLn (String message) throws Outcome;
 
     /**
      * Skips spaces and tab-characters and returns whether the end of file was reached.
