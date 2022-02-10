@@ -2,6 +2,7 @@ package ru.ifmo.testlib;
 
 import java.io.Closeable;
 import java.math.BigInteger;
+import java.util.function.Predicate;
 
 import ru.ifmo.testlib.Outcome.Type;
 
@@ -12,162 +13,86 @@ import ru.ifmo.testlib.Outcome.Type;
  * @author Andrew Stankevich
  * @author Dmitry Paraschenko
  * @author Sergey Melnikov
+ * @author Andrey Plotnikov (Shemplo)
  */
 public interface InStream extends Closeable {
-    /**
-     * A special value denoting end of file.
-     */
-    int EOF_CHAR = -1;
-
-    /**
-     * Returns the next character from the stream, of {@link #EOF_CHAR} if end of file is reached.
-     * Moves the current position in the stream to the next character.
-     *
-     * @return next character from the stream
-     */
-    int nextChar();
-
-    /**
-     * Returns the next character for the input stream.
-     * If end of file is reached, returns {@link #EOF_CHAR}.
-     * Doesn't move the current position -
-     * the following {#nextChar()} or {#currChar()} call returns the same character.
-     *
-     * @return current character for the stream
-     */
-    int currChar();
-
-    /**
-     * Returns whether the end of file was reached.
-     *
-     * @return whether the end of file was reached.
-     */
-    boolean isEoF();
+    
+    boolean seekEoF ();
+    
+    boolean seekEoLn ();
     
     void assertEoF (String message) throws Outcome;
-
-    /**
-     * Returns whether the end of line was reached.
-     *
-     * @return whether the end of line was reached.
-     */
-    boolean isEoLn();
     
     void assertEoLn (String message) throws Outcome;
 
     /**
-     * Skips spaces and tab-characters and returns whether the end of file was reached.
-     *
-     * @return whether the end of file was reached after skipping all spaces and tab-characters.
-     */
-    boolean seekEoF();
-
-    /**
-     * Skips spaces and tab-characters and returns whether the end of line was reached.
-     *
-     * @return whether the end of line was reached after skipping all spaces and tab-characters.
-     */
-    boolean seekEoLn();
-
-    /**
-     * Skips current line.
-     */
-    void skipLine();
-
-    /**
-     * Skips all characters from specified string.
-     *
-     * @param skip the {@link String} containing characters to be skipped.
-     */
-    void skip(String skip);
-
-    /**
      * Resets the stream.
      */
-    void reset();
+    void reset ();
 
     /**
      * Closes the stream.
      */
-    void close();
-
-    /**
-     * Returns next {@link String} token with specified delimiters.
-     *
-     * @param before the {@link String} containing characters to be used as delimiters before the token.
-     * @param after the {@link String} containing characters to be used as delimiters after the token.
-     * @return next {@link String} token;
-     */
-    String nextToken(String before, String after);
-    
-    String nextToken(String before, String after, Type errorType);
-
-    /**
-     * Returns next {@link String} token with specified delimiters.
-     *
-     * @param skip the {@link String} containing characters to be used as delimiters before and after the token.
-     * @return next {@link String} token;
-     */
-    String nextToken(String skip);
+    void close ();
 
     /**
      * Returns next {@link String} token. Whitespace characters are used as delimiters.
      *
      * @return next {@link String} token.
      */
-    String nextToken();
+    default String nextToken () {
+        return nextToken (Integer.MAX_VALUE, false);
+    }
+    
+    String nextToken (int maxLength, boolean skipAfter);
+    
+    String nextToken (Predicate <Integer> before, Predicate <Integer> token, int maxLength, boolean skipAfter);
+    
+    /**
+     * Returns unread part of current line.
+     *
+     * @return unread part of current line.
+     */
+    default String nextLine () {
+        return nextLine (true);
+    }
+    
+    String nextLine (boolean emptyIsAllowed);
 
     /**
      * Returns next {@code int}. Whitespace characters are used as delimiters.
      *
      * @return next {@code int}.
      */
-    int nextInt();
-    
-    int nextInt(Type errorType);
+    int nextInt ();
 
     /**
      * Returns next {@code long}. Whitespace characters are used as delimiters.
      *
      * @return next {@code long}.
      */
-    long nextLong();
-    
-    long nextLong(Type errorType);
+    long nextLong ();
 
     /**
      * Returns next {@link BigInteger}. Whitespace characters are used as delimiters.
      *
      * @return next {@link BigInteger}.
      */
-    BigInteger nextBigInteger();
-    
-    BigInteger nextBigInteger(Type errorType);
+    BigInteger nextBigInteger (int maxTokenLength);
 
     /**
      * Returns next {@code float}. Whitespace characters are used as delimiters.
      *
      * @return next {@code float}.
      */
-    float nextFloat();
-    
-    float nextFloat(Type errorType);
+    float nextFloat (boolean finite);
 
     /**
      * Returns next {@code double}. Whitespace characters are used as delimiters.
      *
      * @return next {@code double}.
      */
-    double nextDouble();
-    
-    double nextDouble(Type errorType);
-
-    /**
-     * Returns unread part of current line.
-     *
-     * @return unread part of current line.
-     */
-    String nextLine();
+    double nextDouble (boolean finite);
 
     /**
      * Throws a new outcome with the given type and message,
@@ -178,7 +103,7 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    Outcome quit(Outcome.Type type, String message);
+    Outcome quit (Type type, String message);
 
     /**
      * Throws a new outcome with the given type and message composed from the given format string and arguments,
@@ -190,8 +115,8 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    default Outcome quit(Outcome.Type type, String formatString, Object... arguments) {
-        throw quit(type, String.format(formatString, arguments));
+    default Outcome quit (Type type, String formatString, Object ... arguments) {
+        throw quit (type, String.format (formatString, arguments));
     }
 
     /**
@@ -203,8 +128,8 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    default Outcome quitp(double points, String message) {
-        throw new PointsOutcome(points, message);
+    default Outcome quitp (double points, String message) {
+        throw new PointsOutcome (points, message);
     }
 
     /**
@@ -217,8 +142,8 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    default Outcome quitp(double points, String formatString, Object... arguments) {
-        throw quitp(points, String.format(formatString, arguments));
+    default Outcome quitp (double points, String formatString, Object ... arguments) {
+        throw quitp (points, String.format (formatString, arguments));
     }
 
     /**
@@ -230,8 +155,8 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    default Outcome quitp(int points, String message) {
-        throw new PointsOutcome(points, message);
+    default Outcome quitp (int points, String message) {
+        throw new PointsOutcome (points, message);
     }
 
     /**
@@ -244,9 +169,9 @@ public interface InStream extends Closeable {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    default Outcome quitp(int points, String formatString, Object... arguments) {
-        throw quitp(points, String.format(formatString, arguments));
+    default Outcome quitp (int points, String formatString, Object ... arguments) {
+        throw quitp (points, String.format (formatString, arguments));
     }
 
-    void setOutcomeMapping(Outcome.Type from, Outcome.Type to);
+    void setOutcomeMapping (Type from, Type to);
 }

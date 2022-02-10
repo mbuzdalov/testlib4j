@@ -3,7 +3,7 @@ package ru.ifmo.testlib;
 /**
  * Interface for problem input validation.
  * 
- * @author Shemplo
+ * @author Andrey Plotnikov (Shemplo)
  *
  */
 public interface Validator {

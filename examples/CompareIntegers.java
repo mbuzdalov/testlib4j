@@ -2,6 +2,7 @@ import ru.ifmo.testlib.*;
 import static ru.ifmo.testlib.Outcome.Type.*;
 
 public final class CompareIntegers implements Checker {
+    
     private int exhaust(InStream stream) {
         int rv = 0;
         while (!stream.seekEoF()) {

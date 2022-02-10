@@ -1,8 +1,7 @@
 package ru.ifmo.testlib;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import ru.ifmo.testlib.Outcome.Type;
  * @author Andrew Stankevich
  * @author Dmitry Paraschenko
  * @author Sergey Melnikov
- * @author Shemplo
+ * @author Andrey Plotnikov (Shemplo)
  */
 public class FileInStream extends InputStreamInStream {
 	
@@ -33,21 +32,17 @@ public class FileInStream extends InputStreamInStream {
 	    reset ();
 	}
 
-	public void setOutcomeMapping(Outcome.Type from, Outcome.Type to) {
-		outcomeMapping.put(from, to);
-	}
-
     public void reset () {
         try {
-            if (reader != null) {
-                reader.close ();
+            if (source != null) {
+                source.close ();
             }
-            reader = new BufferedReader (new FileReader (file));
+            source = new CharSource (new FileInputStream (file));
         } catch (IOException ex) {
             // The output file might not exist, because the participant is "evil".
             throw quit (Outcome.Type.PE, "File not found: " + ex.toString ());
         }
-        nextChar ();
+        source.nextChar ();
     }
 	
 }

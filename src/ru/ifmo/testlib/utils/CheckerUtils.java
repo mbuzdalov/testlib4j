@@ -3,6 +3,11 @@ package ru.ifmo.testlib.utils;
 import ru.ifmo.testlib.Outcome;
 import ru.ifmo.testlib.Outcome.Type;
 
+/**
+ * 
+ * @author Andrey Plotnikov (Shemplo)
+ *
+ */
 public class CheckerUtils {
     
     public static Number assertEquals (Number a, Number b) throws Outcome {
@@ -60,6 +65,30 @@ public class CheckerUtils {
         }
         
         return a;
+    }
+    
+    public static float assertFinite (float a) {
+        if (!Float.isFinite (a)) {
+            throw Outcome.quit (Type.WA, "Number `%s` is not a finite float value", a);
+        }
+        
+        return a;
+    }
+    
+    public static double assertFinite (double a) {
+        if (!Double.isFinite (a)) {
+            throw Outcome.quit (Type.WA, "Number `%s` is not a finite double value", a);
+        }
+        
+        return a;
+    }
+    
+    public static String assertNonEmpty (String value) {
+        if (value == null || value.isBlank ()) {
+            throw Outcome.quit (Type.PE, "Non-empty string was expected");
+        }
+        
+        return value;
     }
     
 }

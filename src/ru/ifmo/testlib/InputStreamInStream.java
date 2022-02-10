@@ -1,27 +1,22 @@
 package ru.ifmo.testlib;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import ru.ifmo.testlib.Outcome.Type;
+import ru.ifmo.testlib.utils.CheckerUtils;
 
 /**
  * 
- * @author Shemplo
+ * @author Andrey Plotnikov (Shemplo)
  *
  */
 public class InputStreamInStream implements InStream {
-
-    /** Current character. */
-    protected int currChar;
-
-    /** A reader used to read data. */
-    protected BufferedReader reader;
+    
+    /** Instance of object that reads input stream. */
+    protected CharSource source;
 
     /** The outcome mapping to be used for this stream. */
     protected final Map <Type, Type> outcomeMapping;
@@ -32,17 +27,7 @@ public class InputStreamInStream implements InStream {
      * @param file a file to read data from
      */
     public InputStreamInStream (InputStream inputStream, Map <Type, Type> outcomeMapping) {
-        if (inputStream != null) {            
-            reader = new BufferedReader (new InputStreamReader (
-                inputStream, StandardCharsets.UTF_8
-            ));
-            
-            try {
-                currChar = reader.read ();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        source = new CharSource (inputStream);
         this.outcomeMapping = outcomeMapping;
     }
     
@@ -55,215 +40,109 @@ public class InputStreamInStream implements InStream {
     }
 
     public void close() {
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            // Even if the participant is totally "evil", this must not happen
-            throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex.toString());
+        if (source != null) {
+            source.close ();
         }
     }
-
-    public int currChar() {
-        return currChar;
+    
+    @Override
+    public boolean seekEoF () {
+        return source.seekEoF ();
     }
-
-    public boolean isEoF() {
-        return currChar == EOF_CHAR;
-    }
-
-    public boolean isEoLn() {
-        return isEoF() || currChar == '\r' || currChar == '\n';
-    }
-
-    public boolean seekEoF() {
-        while (!isEoF() && Character.isWhitespace(currChar)) {
-            nextChar();
-        }
-        return isEoF();
+    
+    @Override
+    public boolean seekEoLn () {
+        return source.seekEoLn ();
     }
     
     public void assertEoF (String message) throws Outcome {
-        if (!seekEoF ()) {
+        if (!source.seekEoF ()) {
             throw Outcome.quit (Type.PE, message);
         }
-    }
-
-    public boolean seekEoLn() {
-        while (!isEoLn() && Character.isWhitespace(currChar)) {
-            nextChar();
-        }
-        return isEoLn();
     }
     
     public void assertEoLn (String message) throws Outcome {
-        if (!seekEoLn ()) {
+        if (!source.seekEoLn ()) {
             throw Outcome.quit (Type.PE, message);
         }
     }
-
-    public void skipLine() {
-        while (!isEoLn()) {
-            nextChar();
-        }
-        if (currChar == '\r') nextChar();
-        if (currChar == '\n') nextChar();
-    }
-
-    public void skip(String skip) {
-        while (!isEoF() && skip.indexOf((char) currChar) >= 0) {
-            nextChar();
-        }
-    }
-
-    public String nextToken (String before, String after) {
-        return nextToken (before, after, Type.PE);
+    
+    public String nextToken (int maxLength, boolean skipAfter) {
+        source.skipWhitespaces ();
+        
+        return CheckerUtils.assertNonEmpty (source.takeWhile (
+            c -> !Character.isWhitespace (c), 
+            maxLength, skipAfter
+        ));
     }
     
-    public String nextToken (String before, String after, Type type) {
-        while (!isEoF () && before.indexOf ((char) currChar) >= 0) {
-            nextChar ();
-        }
-        if (isEoF ()) {
-            throw quit (type, "Unexpected end of file");
-        }
-        StringBuilder builder = new StringBuilder ();
-        while (!isEoF () && after.indexOf ((char) currChar) < 0) {
-            builder.append ((char) currChar);
-            nextChar ();
-        }
-        return builder.toString ();
+    public String nextToken (Predicate <Integer> before, Predicate <Integer> token, int maxLength, boolean skipAfter) {
+        source.skipWhile (before);
+        return CheckerUtils.assertNonEmpty (source.takeWhile (token, maxLength, skipAfter));
     }
-
-    public String nextToken(String skip) {
-        return nextToken(skip, skip);
+    
+    public String nextLine (boolean emptyIsAllowed) {
+        final var line = source.takeLine (10000, true);
+        return emptyIsAllowed ? line : CheckerUtils.assertNonEmpty (line);
     }
-
-    public String nextToken() {
-        return nextToken(" \t\r\n");
-    }
-
+    
     public int nextInt () {
-        return nextInt (Type.PE);
-    }
-    
-    public int nextInt (Type type) {
-        skip (" \t\r\n");
-        
-        final var sb = new StringBuilder ();
-        if (currChar == '-') {
-            sb.append ((char) currChar);
-            nextChar ();
-        }
-        while (!isEoLn () && Character.isDigit (currChar)) {
-            sb.append ((char) currChar);
-            nextChar ();
-        }
-        
-        if (!isEoLn () && !Character.isWhitespace (currChar)) {
-            String found = sb.toString ();
-            if (sb.length () > 100) {
-                found = sb.substring (0, 100) + "...";
-            }
-            
-            throw quit (type, String.format("A 32-bit signed integer expected, %s found", found + ((char) currChar)));
-        } else if (sb.length () == 0) {
-            throw quit (type, String.format("A 32-bit signed integer expected but nothing found"));
-        }
+        final var token = nextToken ("-2147483648".length (), false);
         
         try {            
-            return Integer.parseInt (sb.toString ());
+            return Integer.parseInt (token);
         } catch (NumberFormatException nfe) {
             try {
-                return Integer.parseUnsignedInt (sb.toString ());
+                return Integer.parseUnsignedInt (token);
             } catch (NumberFormatException nfee) {
-                throw quit (type, String.format("A 32-bit signed integer expected but a larger number found"));
+                throw quit (Type.PE, String.format ("A 32-bit integer expected but `%s` found", token));
             }
         }
     }
 
     public long nextLong () {
-        return nextLong (Type.PE);
-    }
-    
-    public long nextLong (Type type) {
-        String word = nextToken ();
-        try {
-            return Long.parseLong (word);
-        } catch (NumberFormatException ex) {
-            word = word.length () > 100 ? word.substring (100) : word;
-            throw quit (type, String.format ("A 64-bit signed integer expected, %s found", word), ex);
-        }
-    }
-    
-    public BigInteger nextBigInteger () {
-        return nextBigInteger (Type.PE);
-    }
-
-    public BigInteger nextBigInteger (Type type) {
-        String word = nextToken();
-        try {
-            return new BigInteger(word);
-        } catch (NumberFormatException ex) {
-            word = word.length () > 100 ? word.substring (100) : word;
-            throw quit(type, String.format("An integer expected, %s found", word), ex);
-        }
-    }
-
-    public float nextFloat () {
-        return nextFloat (Type.PE);
-    }
-    
-    public float nextFloat (Type type) {
-        String word = nextToken();
-        try {
-            return Float.parseFloat(word);
-        } catch (NumberFormatException ex) {
-            word = word.length () > 100 ? word.substring (100) : word;
-            throw quit(type, String.format("A float number expected, %s found", word), ex);
-        }
-    }
-
-    public double nextDouble () {
-        return nextDouble (Type.PE);
-    }
-    
-    public double nextDouble (Type type) {
-        String word = nextToken();
-        try {
-            double v = Double.parseDouble(word);
-            if (Double.isInfinite(v) || Double.isNaN(v)) {
-                throw new NumberFormatException(word);
+        final var token = nextToken ("-9223372036854775808".length (), false);
+        
+        try {            
+            return Long.parseLong (token);
+        } catch (NumberFormatException nfe) {
+            try {
+                return Long.parseUnsignedLong (token);
+            } catch (NumberFormatException nfee) {
+                throw quit (Type.PE, String.format ("A 64-bit integer expected but `%s` found", token));
             }
-            return v;
-        } catch (NumberFormatException ex) {
-            word = word.length () > 100 ? word.substring (100) : word;
-            throw quit(Outcome.Type.PE, String.format("A double number expected, %s found", word), ex);
         }
-    }
-
-    public String nextLine() {
-        StringBuilder sb = new StringBuilder();
-        while (!isEoLn()) {
-            sb.append((char) (currChar));
-            nextChar();
-        }
-        if (currChar == '\r') nextChar();
-        if (currChar == '\n') nextChar();
-
-        return sb.toString();
-    }
-
-    public int nextChar () {
-        return nextChar (Type.PE);
     }
     
-    public int nextChar (Type type) {
+    public BigInteger nextBigInteger (int maxTokenLength) {
+        final var token = nextToken (maxTokenLength, false);
+        
+        try {            
+            return new BigInteger (token);
+        } catch (NumberFormatException nfe) {
+            throw quit (Type.PE, String.format ("An integer expected but `%s` found", token));
+        }
+    }
+    
+    public float nextFloat (boolean finite) {
+        final var token = nextToken (50, false);
+        
+        try {            
+            final var value = Float.parseFloat (token);
+            return finite ? CheckerUtils.assertFinite (value) : value;
+        } catch (NumberFormatException nfe) {
+            throw quit (Type.PE, String.format ("A float number expected but `%s` found", token));
+        }
+    }
+    
+    public double nextDouble (boolean finite) {
+        final var token = nextToken (100, false);
+        
         try {
-            int result = currChar;
-            currChar = reader.read();
-            return result;
-        } catch (IOException ex) {
-            throw quit (type, ex.getMessage());
+            final var value = Double.parseDouble (token);
+            return finite ? CheckerUtils.assertFinite (value) : value;
+        } catch (NumberFormatException nfe) {
+            throw quit (Type.PE, String.format ("A double number expected but `%s` found", token));
         }
     }
 
@@ -276,8 +155,8 @@ public class InputStreamInStream implements InStream {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-    public Outcome quit(Outcome.Type type, String message) {
-        throw new Outcome(outcomeMapping.getOrDefault(type, type), message);
+    public Outcome quit (Type type, String message) {
+        throw new Outcome (outcomeMapping.getOrDefault (type, type), message);
     }
     
 }

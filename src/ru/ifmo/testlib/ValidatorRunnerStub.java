@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * Your actual validator code should be placed in `Validate.java` file (no package)
  * in resource files of polygon. That class should implements {@link Validator} interface.
  * 
- * @author Shemplo
+ * @author Andrey Plotnikov (Shemplo)
  *
  */
 public class ValidatorRunnerStub {

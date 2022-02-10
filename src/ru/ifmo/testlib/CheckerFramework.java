@@ -26,6 +26,7 @@ import ru.ifmo.testlib.verifiers.KittenResultAdapter;
  * @author Andrew Stankevich
  * @author Dmitry Paraschenko
  * @author Sergey Melnikov
+ * @author Andrey Plotnikov (Shemplo)
  */
 public class CheckerFramework {
     
@@ -246,8 +247,8 @@ public class CheckerFramework {
                 outcome = out;
             }
 
-            if (outcome.getType() == OK && !output.seekEoF()) {
-                outcome = new Outcome(PE, "Extra information in output file");
+            if (outcome.getType() == OK) {
+                output.assertEoF ("Extra information in output file");
             }
         } catch (Outcome out) {
             outcome = out;
