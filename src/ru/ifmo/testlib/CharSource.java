@@ -44,7 +44,9 @@ public class CharSource {
     
     public void close() {
         try {
-            reader.close();
+            if (reader != null) {                
+                reader.close();
+            }
         } catch (IOException ex) {
             // Even if the participant is totally "evil", this must not happen
             throw new Outcome (Outcome.Type.FAIL, "Cannot close file: " + ex.toString());
