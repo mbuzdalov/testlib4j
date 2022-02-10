@@ -42,7 +42,6 @@ public class FileInStream extends InputStreamInStream {
             // The output file might not exist, because the participant is "evil".
             throw quit (Outcome.Type.PE, "File not found: " + ex.toString ());
         }
-        source.nextChar ();
     }
 	
 }
