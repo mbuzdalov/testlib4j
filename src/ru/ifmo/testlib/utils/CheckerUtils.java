@@ -91,4 +91,24 @@ public class CheckerUtils {
         return value;
     }
     
+    public static String assertLength (String string, int length) {
+        string = assertNonEmpty (string);
+        if (string.length () != length) {
+            throw Outcome.quit (Type.PE, 
+                "String with length of %d characters was expected (%d given)", 
+                length, string.length ()
+            );
+        }
+        
+        return string;
+    }
+    
+    public static String assertMatch (String string, String pattern) {
+        if (string == null || !string.matches (pattern)) {
+            throw Outcome.quit (Type.PE, "String doesn't match given pattern: %s", pattern);
+        }
+        
+        return string;
+    }
+    
 }

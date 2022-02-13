@@ -3,6 +3,7 @@ package ru.ifmo.testlib;
 import java.io.Closeable;
 import java.math.BigInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import ru.ifmo.testlib.Outcome.Type;
 
@@ -21,9 +22,19 @@ public interface InStream extends Closeable {
     
     boolean seekEoLn ();
     
-    void assertEoF (String message) throws Outcome;
+    default void assertEoF (String message) throws Outcome {
+        assertEoF (() -> message);
+    }
     
-    void assertEoLn (String message) throws Outcome;
+    void assertEoF (Supplier <String> message) throws Outcome;
+    
+    default void assertEoLn (String message) throws Outcome {
+        assertEoLn (() -> message);
+    }
+    
+    void assertEoLn (Supplier <String> message) throws Outcome;
+    
+    CharSource getSource ();
 
     /**
      * Resets the stream.

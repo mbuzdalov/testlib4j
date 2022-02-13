@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import ru.ifmo.testlib.Outcome.Type;
 import ru.ifmo.testlib.utils.CheckerUtils;
@@ -35,6 +36,11 @@ public class InputStreamInStream implements InStream {
         outcomeMapping.put (from, to);
     }
 
+    @Override
+    public CharSource getSource () {
+        return source;
+    }
+    
     public void reset () {
         throw new UnsupportedOperationException ();
     }
@@ -55,15 +61,15 @@ public class InputStreamInStream implements InStream {
         return source.seekEoLn ();
     }
     
-    public void assertEoF (String message) throws Outcome {
+    public void assertEoF (Supplier <String> message) throws Outcome {
         if (!source.seekEoF ()) {
-            throw Outcome.quit (Type.PE, message);
+            throw Outcome.quit (Type.PE, message.get ());
         }
     }
     
-    public void assertEoLn (String message) throws Outcome {
+    public void assertEoLn (Supplier <String> message) throws Outcome {
         if (!source.seekEoLn ()) {
-            throw Outcome.quit (Type.PE, message);
+            throw Outcome.quit (Type.PE, message.get ());
         }
     }
     
