@@ -51,7 +51,7 @@ public class FileInStream implements InStream {
 			reader = new BufferedReader(new FileReader(file));
 		} catch (IOException ex) {
 		    // The output file might not exist, because the participant is "evil".
-			throw quit(Outcome.Type.PE, "File not found: " + ex.toString());
+			throw quit(Outcome.Type.PE, "File not found: " + ex);
 		}
 		nextChar();
 	}
@@ -61,7 +61,7 @@ public class FileInStream implements InStream {
 			reader.close();
 		} catch (IOException ex) {
 			// Even if the participant is totally "evil", this must not happen
-			throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex.toString());
+			throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex);
 		}
 	}
 

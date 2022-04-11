@@ -35,7 +35,7 @@ public class CheckerFramework {
             "Usage: [<verifier_classname>] <input_file> <output_file> <answer_file> [<result_file> [<test_system_args>]].\n" +
             "    The <verifier_classname> value may also be specified in MANIFEST.MF as Checker-Class attribute.";
 
-    private static HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
+    private static final HashMap<String, ResultAdapter> resultAdapters = new HashMap<>();
 
     private static void registerResultAdapter(String id, ResultAdapter v) {
         resultAdapters.put(id, v);
@@ -53,7 +53,8 @@ public class CheckerFramework {
     }
 
     private static void fatal(String message, Object... args) {
-        System.err.println(String.format(message, args));
+        System.err.printf(message, args);
+        System.out.println();
         System.exit(3);
     }
 

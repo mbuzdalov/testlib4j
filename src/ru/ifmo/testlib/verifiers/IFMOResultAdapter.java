@@ -18,7 +18,7 @@ public class IFMOResultAdapter implements ResultAdapter {
 
     private boolean xmlMode;
 
-    private String[] outcomes = {
+    private final String[] outcomes = {
         "accepted", "wrong-answer", "presentation-error", "fail", "points"
     };
 

@@ -74,11 +74,11 @@ public class Outcome extends RuntimeException {
 	/**
 	 * A type of the outcome.
 	 */
-	private Type type;
+	private final Type type;
 	/**
 	 * A comment to the outcome.
 	 */
-	private String comment;
+	private final String comment;
 
 	/**
 	 * Creates a new outcome.
