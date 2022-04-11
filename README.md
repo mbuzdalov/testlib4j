@@ -1,3 +1,18 @@
+# !!! WARNING WARNING WARNING WARNING !!!
+
+**!AVOID USING THIS CODE!**
+
+Most likely, in year 2022+ you do not want to use this library.
+Standalone contest development is considered outdated by too many people for too many years.
+To meet the modern standards of development, you should use [Polygon](https://polygon.codeforces.com/)
+and the de facto standard [Testlib in C++](https://github.com/MikeMirzayanov/testlib).
+
+This library is currently fifteen years behind Mike's Testlib in features.
+It is poorly designed and not maintained well enough. This might change -- although not radically -- in the near future,
+but please avoid using `testlib4j` until it gets mature and feature-complete again.   
+
+If, for some reason, you are still there, please go ahead.
+
 # testlib4j
 
 ## Introduction
