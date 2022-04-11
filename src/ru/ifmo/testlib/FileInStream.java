@@ -16,188 +16,188 @@ import java.util.Map;
  * @author Sergey Melnikov
  */
 public class FileInStream implements InStream {
-	/** A file to read data from. */
-	private final File file;
+    /** A file to read data from. */
+    private final File file;
 
-	/** Current character. */
-	private int currChar;
+    /** Current character. */
+    private int currChar;
 
-	/** A reader used to read data. */
-	private BufferedReader reader;
+    /** A reader used to read data. */
+    private BufferedReader reader;
 
-	/** The outcome mapping to be used for this stream. */
-	private final Map<Outcome.Type, Outcome.Type> outcomeMapping;
+    /** The outcome mapping to be used for this stream. */
+    private final Map<Outcome.Type, Outcome.Type> outcomeMapping;
 
-	/**
-	 * Creates new {@link InStream} for specified file and with the specified outcome mapping.
-	 *
-	 * @param file a file to read data from
-	 */
-	FileInStream(File file, Map<Outcome.Type, Outcome.Type> outcomeMapping) {
-		this.file = file;
-		this.outcomeMapping = outcomeMapping;
-		reset();
-	}
+    /**
+     * Creates new {@link InStream} for specified file and with the specified outcome mapping.
+     *
+     * @param file a file to read data from
+     */
+    FileInStream(File file, Map<Outcome.Type, Outcome.Type> outcomeMapping) {
+        this.file = file;
+        this.outcomeMapping = outcomeMapping;
+        reset();
+    }
 
-	public void setOutcomeMapping(Outcome.Type from, Outcome.Type to) {
-		outcomeMapping.put(from, to);
-	}
+    public void setOutcomeMapping(Outcome.Type from, Outcome.Type to) {
+        outcomeMapping.put(from, to);
+    }
 
-	public void reset() {
-		try {
-			if (reader != null) {
-				reader.close();
-			}
-			reader = new BufferedReader(new FileReader(file));
-		} catch (IOException ex) {
-		    // The output file might not exist, because the participant is "evil".
-			throw quit(Outcome.Type.PE, "File not found: " + ex);
-		}
-		nextChar();
-	}
+    public void reset() {
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            reader = new BufferedReader(new FileReader(file));
+        } catch (IOException ex) {
+            // The output file might not exist, because the participant is "evil".
+            throw quit(Outcome.Type.PE, "File not found: " + ex);
+        }
+        nextChar();
+    }
 
-	public void close() {
-		try {
-			reader.close();
-		} catch (IOException ex) {
-			// Even if the participant is totally "evil", this must not happen
-			throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex);
-		}
-	}
+    public void close() {
+        try {
+            reader.close();
+        } catch (IOException ex) {
+            // Even if the participant is totally "evil", this must not happen
+            throw quit(Outcome.Type.FAIL, "Cannot close file: " + ex);
+        }
+    }
 
-	public int currChar() {
-		return currChar;
-	}
+    public int currChar() {
+        return currChar;
+    }
 
     public boolean isEoF() {
-		return currChar == EOF_CHAR;
-	}
+        return currChar == EOF_CHAR;
+    }
 
-	public boolean isEoLn() {
-		return isEoF() || currChar == '\r' || currChar == '\n';
-	}
+    public boolean isEoLn() {
+        return isEoF() || currChar == '\r' || currChar == '\n';
+    }
 
-	public boolean seekEoF() {
-		while (!isEoF() && Character.isWhitespace(currChar)) {
+    public boolean seekEoF() {
+        while (!isEoF() && Character.isWhitespace(currChar)) {
             nextChar();
         }
-		return isEoF();
-	}
+        return isEoF();
+    }
 
-	public boolean seekEoLn() {
-		while (!isEoLn() && Character.isWhitespace(currChar)) {
+    public boolean seekEoLn() {
+        while (!isEoLn() && Character.isWhitespace(currChar)) {
             nextChar();
         }
-		return isEoLn();
-	}
+        return isEoLn();
+    }
 
-	public void skipLine() {
-		while (!isEoLn()) {
+    public void skipLine() {
+        while (!isEoLn()) {
             nextChar();
         }
-		if (currChar == '\r') nextChar();
-		if (currChar == '\n') nextChar();
-	}
+        if (currChar == '\r') nextChar();
+        if (currChar == '\n') nextChar();
+    }
 
-	public void skip(String skip) {
-		while (!isEoF() && skip.indexOf((char) currChar) >= 0) {
+    public void skip(String skip) {
+        while (!isEoF() && skip.indexOf((char) currChar) >= 0) {
             nextChar();
         }
-	}
+    }
 
-	public String nextToken(String before, String after) {
-		while (!isEoF() && before.indexOf((char) currChar) >= 0) {
+    public String nextToken(String before, String after) {
+        while (!isEoF() && before.indexOf((char) currChar) >= 0) {
             nextChar();
         }
-		if (isEoF()) {
-			throw quit(Outcome.Type.PE, "Unexpected end of file");
-		}
-		StringBuilder builder = new StringBuilder();
-		while (!isEoF() && after.indexOf((char) currChar) < 0) {
-			builder.append((char) currChar);
+        if (isEoF()) {
+            throw quit(Outcome.Type.PE, "Unexpected end of file");
+        }
+        StringBuilder builder = new StringBuilder();
+        while (!isEoF() && after.indexOf((char) currChar) < 0) {
+            builder.append((char) currChar);
             nextChar();
         }
-		return builder.toString();
-	}
+        return builder.toString();
+    }
 
-	public String nextToken(String skip) {
-		return nextToken(skip, skip);
-	}
+    public String nextToken(String skip) {
+        return nextToken(skip, skip);
+    }
 
-	public String nextToken() {
-		return nextToken(" \t\r\n");
-	}
+    public String nextToken() {
+        return nextToken(" \t\r\n");
+    }
 
-	public int nextInt() {
-		String word = nextToken();
-		try {
-			return Integer.parseInt(word);
-		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, "A 32-bit signed integer expected, %s found", shortenIfTooLong(word));
-		}
-	}
+    public int nextInt() {
+        String word = nextToken();
+        try {
+            return Integer.parseInt(word);
+        } catch (NumberFormatException ex) {
+            throw quit(Outcome.Type.PE, "A 32-bit signed integer expected, %s found", shortenIfTooLong(word));
+        }
+    }
 
-	public long nextLong() {
-		String word = nextToken();
-		try {
-			return Long.parseLong(word);
-		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, "A 64-bit signed integer expected, %s found", shortenIfTooLong(word));
-		}
-	}
+    public long nextLong() {
+        String word = nextToken();
+        try {
+            return Long.parseLong(word);
+        } catch (NumberFormatException ex) {
+            throw quit(Outcome.Type.PE, "A 64-bit signed integer expected, %s found", shortenIfTooLong(word));
+        }
+    }
 
-	public BigInteger nextBigInteger() {
-		String word = nextToken();
-		try {
-			return new BigInteger(word);
-		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, "An integer expected, %s found", shortenIfTooLong(word));
-		}
-	}
+    public BigInteger nextBigInteger() {
+        String word = nextToken();
+        try {
+            return new BigInteger(word);
+        } catch (NumberFormatException ex) {
+            throw quit(Outcome.Type.PE, "An integer expected, %s found", shortenIfTooLong(word));
+        }
+    }
 
-	public float nextFloat() {
-		String word = nextToken();
-		try {
-			return Float.parseFloat(word);
-		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, "A float number expected, %s found", shortenIfTooLong(word));
-		}
-	}
+    public float nextFloat() {
+        String word = nextToken();
+        try {
+            return Float.parseFloat(word);
+        } catch (NumberFormatException ex) {
+            throw quit(Outcome.Type.PE, "A float number expected, %s found", shortenIfTooLong(word));
+        }
+    }
 
-	public double nextDouble() {
-		String word = nextToken();
-		try {
-			double v = Double.parseDouble(word);
-			if (Double.isInfinite(v) || Double.isNaN(v)) {
-    			throw new NumberFormatException(word);
-			}
-			return v;
-		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, "A double number expected, %s found", shortenIfTooLong(word));
-		}
-	}
+    public double nextDouble() {
+        String word = nextToken();
+        try {
+            double v = Double.parseDouble(word);
+            if (Double.isInfinite(v) || Double.isNaN(v)) {
+                throw new NumberFormatException(word);
+            }
+            return v;
+        } catch (NumberFormatException ex) {
+            throw quit(Outcome.Type.PE, "A double number expected, %s found", shortenIfTooLong(word));
+        }
+    }
 
-	public String nextLine() {
-		StringBuilder sb = new StringBuilder();
-		while (!isEoLn()) {
-			sb.append((char) (currChar));
+    public String nextLine() {
+        StringBuilder sb = new StringBuilder();
+        while (!isEoLn()) {
+            sb.append((char) (currChar));
             nextChar();
         }
-		if (currChar == '\r') nextChar();
-		if (currChar == '\n') nextChar();
+        if (currChar == '\r') nextChar();
+        if (currChar == '\n') nextChar();
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public int nextChar() {
-		try {
-		    int result = currChar;
-			currChar = reader.read();
+    public int nextChar() {
+        try {
+            int result = currChar;
+            currChar = reader.read();
             return result;
-		} catch (IOException ex) {
-			throw quit(Outcome.Type.PE, ex.getMessage());
-		}
-	}
+        } catch (IOException ex) {
+            throw quit(Outcome.Type.PE, ex.getMessage());
+        }
+    }
 
     /**
      * Throws a new outcome with the given type and message,
@@ -208,12 +208,12 @@ public class FileInStream implements InStream {
      * @return the newly created outcome (actually it is thrown, but you can safely say {@code return quit(...)}.
      * @throws Outcome the newly created outcome.
      */
-	public Outcome quit(Outcome.Type type, String message) {
+    public Outcome quit(Outcome.Type type, String message) {
         throw new Outcome(outcomeMapping.getOrDefault(type, type), message);
     }
 
-	static private String shortenIfTooLong(String expected) {
-		if (expected.length() <= 64) return expected;
-		return expected.substring(0, 32) + "..." + expected.substring(expected.length() - 32);
-	}
+    static private String shortenIfTooLong(String expected) {
+        if (expected.length() <= 64) return expected;
+        return expected.substring(0, 32) + "..." + expected.substring(expected.length() - 32);
+    }
 }
