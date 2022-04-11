@@ -12,6 +12,8 @@
     <property name="examples.build.dir"  location="${build.dir}/examples"/>
     <property name="examples.deploy.dir" location="${deploy.dir}/examples"/>
 
+    <property name="java.target" value="8"/>
+
     <path id="src.deps">
         <pathelement location="${src.build.dir}"/>
     </path>
@@ -35,6 +37,8 @@
             srcdir="${src.source.dir}"
             destdir="${src.build.dir}"
             encoding="utf-8"
+            source="${java.target}"
+            target="${java.target}"
             includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked"/>
@@ -47,7 +51,14 @@
         <attribute name="name"/>
         <sequential>
             <mkdir dir="${examples.build.dir}/@{name}"/>
-            <javac srcdir="${examples.source.dir}" destdir="${examples.build.dir}/@{name}" includeantruntime="false">
+            <javac
+                srcdir="${examples.source.dir}"
+                destdir="${examples.build.dir}/@{name}"
+                encoding="utf-8"
+                source="${java.target}"
+                target="${java.target}"
+                includeantruntime="false"
+            >
                 <include name="@{class}.java"/>
                 <classpath refid="src.deps"/>
             </javac>
