@@ -133,7 +133,7 @@ public class FileInStream implements InStream {
 		try {
 			return Integer.parseInt(word);
 		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, String.format("A 32-bit signed integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, "A 32-bit signed integer expected, %s found", shortenIfTooLong(word));
 		}
 	}
 
@@ -142,7 +142,7 @@ public class FileInStream implements InStream {
 		try {
 			return Long.parseLong(word);
 		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, String.format("A 64-bit signed integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, "A 64-bit signed integer expected, %s found", shortenIfTooLong(word));
 		}
 	}
 
@@ -151,7 +151,7 @@ public class FileInStream implements InStream {
 		try {
 			return new BigInteger(word);
 		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, String.format("An integer expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, "An integer expected, %s found", shortenIfTooLong(word));
 		}
 	}
 
@@ -160,7 +160,7 @@ public class FileInStream implements InStream {
 		try {
 			return Float.parseFloat(word);
 		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, String.format("A float number expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, "A float number expected, %s found", shortenIfTooLong(word));
 		}
 	}
 
@@ -173,7 +173,7 @@ public class FileInStream implements InStream {
 			}
 			return v;
 		} catch (NumberFormatException ex) {
-			throw quit(Outcome.Type.PE, String.format("A double number expected, %s found", word), ex);
+			throw quit(Outcome.Type.PE, "A double number expected, %s found", shortenIfTooLong(word));
 		}
 	}
 
@@ -211,4 +211,9 @@ public class FileInStream implements InStream {
 	public Outcome quit(Outcome.Type type, String message) {
         throw new Outcome(outcomeMapping.getOrDefault(type, type), message);
     }
+
+	static private String shortenIfTooLong(String expected) {
+		if (expected.length() <= 64) return expected;
+		return expected.substring(0, 32) + "..." + expected.substring(expected.length() - 32);
+	}
 }
