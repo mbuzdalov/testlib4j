@@ -21,3 +21,8 @@ hs_err_pid*
 /out/
 /build/
 /deploy/
+
+# Eclipse files
+/.classpath
+/.settings
+/.project
