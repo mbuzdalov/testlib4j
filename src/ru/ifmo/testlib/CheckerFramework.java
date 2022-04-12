@@ -54,7 +54,7 @@ public class CheckerFramework {
 
     private static void fatal(String message, Object... args) {
         System.err.printf(message, args);
-        System.out.println();
+        System.err.println();
         System.exit(3);
     }
 
